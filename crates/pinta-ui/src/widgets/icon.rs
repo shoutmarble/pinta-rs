@@ -132,10 +132,25 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             frame.stroke(&Path::line(point(15.0, 15.0), point(21.0, 21.0)), stroke);
         }
         IconKind::Pan => {
-            frame.stroke(&Path::line(point(12.0, 4.0), point(12.0, 19.0)), stroke);
-            frame.stroke(&Path::line(point(7.0, 9.0), point(12.0, 4.0)), stroke);
-            frame.stroke(&Path::line(point(17.0, 9.0), point(12.0, 4.0)), stroke);
-            frame.stroke(&Path::line(point(8.0, 19.0), point(16.0, 19.0)), stroke);
+            let hand = Path::new(|b| {
+                b.move_to(point(8.0, 19.0));
+                b.line_to(point(8.0, 11.0));
+                b.line_to(point(9.8, 10.0));
+                b.line_to(point(10.8, 14.8));
+                b.line_to(point(10.9, 7.4));
+                b.line_to(point(12.8, 7.0));
+                b.line_to(point(13.8, 14.4));
+                b.line_to(point(14.0, 8.1));
+                b.line_to(point(15.9, 8.4));
+                b.line_to(point(16.7, 15.1));
+                b.line_to(point(17.0, 10.5));
+                b.line_to(point(19.0, 10.9));
+                b.line_to(point(18.3, 17.0));
+                b.line_to(point(15.8, 20.0));
+                b.line_to(point(10.8, 20.0));
+                b.close();
+            });
+            frame.stroke(&hand, thin);
         }
         IconKind::RectSelect => rect_outline(frame, point(5.0, 5.0), size_scale(size, 14.0, 14.0), stroke),
         IconKind::EllipseSelect => frame.stroke(&Path::circle(point(12.0, 12.0), size.width * 0.24), stroke),
@@ -149,8 +164,10 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             frame.stroke(&path, stroke);
         }
         IconKind::MagicWand => {
-            frame.stroke(&Path::line(point(8.0, 18.0), point(15.0, 11.0)), stroke);
-            sparkle(frame, point(16.5, 7.5), color, size.width * 0.18);
+            frame.stroke(&Path::line(point(7.0, 18.0), point(14.0, 11.0)), stroke);
+            frame.stroke(&Path::line(point(6.0, 19.0), point(9.0, 22.0)), thin);
+            sparkle(frame, point(16.5, 7.5), color, size.width * 0.20);
+            sparkle(frame, point(11.0, 9.2), color, size.width * 0.08);
         }
         IconKind::Paintbrush => {
             frame.stroke(&Path::line(point(7.0, 18.0), point(16.0, 9.0)), stroke);
@@ -179,18 +196,25 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
         }
         IconKind::PaintBucket => {
             let bucket = Path::new(|b| {
-                b.move_to(point(7.0, 9.0));
-                b.line_to(point(13.0, 4.0));
+                b.move_to(point(6.0, 10.0));
+                b.line_to(point(12.0, 4.0));
                 b.line_to(point(18.0, 10.0));
-                b.line_to(point(12.0, 15.0));
+                b.line_to(point(12.0, 16.0));
                 b.close();
             });
             frame.fill(&bucket, color);
-            frame.fill(&Path::circle(point(18.0, 17.0), size.width * 0.08), color);
+            frame.fill(&Path::circle(point(18.0, 17.0), size.width * 0.09), color);
+            frame.stroke(&Path::line(point(5.0, 20.0), point(16.0, 20.0)), thin);
         }
         IconKind::Gradient => {
-            frame.fill(&Path::rectangle(point(5.0, 7.0), size_scale(size, 14.0, 10.0)), Fill::from(Color::from_rgba(color.r, color.g, color.b, 0.2)));
-            frame.fill(&Path::rectangle(point(11.0, 7.0), size_scale(size, 8.0, 10.0)), color);
+            frame.fill(&Path::rectangle(point(5.0, 7.0), size_scale(size, 14.0, 10.0)), Fill::from(Color::from_rgba(color.r, color.g, color.b, 0.18)));
+            frame.fill(&Path::new(|b| {
+                b.move_to(point(9.0, 17.0));
+                b.line_to(point(19.0, 7.0));
+                b.line_to(point(19.0, 17.0));
+                b.close();
+            }), color);
+            frame.stroke(&Path::rectangle(point(5.0, 7.0), size_scale(size, 14.0, 10.0)), thin);
         }
         IconKind::ColorPicker => {
             frame.stroke(&Path::line(point(7.0, 17.0), point(16.0, 8.0)), stroke);
@@ -221,15 +245,18 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             frame.stroke(&blob, stroke);
         }
         IconKind::CloneStamp => {
-            rect_outline(frame, point(7.0, 10.0), size_scale(size, 10.0, 8.0), stroke);
-            frame.stroke(&Path::line(point(12.0, 10.0), point(12.0, 5.0)), stroke);
-            frame.stroke(&Path::line(point(9.0, 5.0), point(15.0, 5.0)), stroke);
+            rounded_rect(frame, point(7.0, 11.0), size_scale(size, 10.0, 7.0), size.width * 0.08, thin);
+            frame.stroke(&Path::line(point(12.0, 11.0), point(12.0, 5.0)), thin);
+            frame.stroke(&Path::line(point(9.0, 5.0), point(15.0, 5.0)), thin);
+            frame.stroke(&Path::line(point(9.6, 8.0), point(14.4, 8.0)), thin);
         }
         IconKind::Recolor => {
+            frame.stroke(&Path::line(point(7.0, 17.0), point(15.0, 9.0)), stroke);
+            frame.stroke(&Path::circle(point(16.4, 7.6), size.width * 0.09), thin);
             let drop = Path::new(|b| {
-                b.move_to(point(12.0, 4.0));
-                b.bezier_curve_to(point(16.0, 8.0), point(18.0, 12.0), point(12.0, 20.0));
-                b.bezier_curve_to(point(6.0, 12.0), point(8.0, 8.0), point(12.0, 4.0));
+                b.move_to(point(18.0, 13.0));
+                b.bezier_curve_to(point(20.0, 15.0), point(20.0, 17.0), point(18.0, 20.0));
+                b.bezier_curve_to(point(16.0, 17.0), point(16.0, 15.0), point(18.0, 13.0));
             });
             frame.fill(&drop, color);
         }

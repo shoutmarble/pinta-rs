@@ -54,7 +54,7 @@ fn tool_button<'a, Message: Clone + 'a>(
     };
 
     button(
-        container(icon::view(item.icon, 18.0, 18.0, if selected {
+        container(icon::view(item.icon, 19.0, 19.0, if selected {
             theme.colors.text_primary
         } else {
             Color::from_rgb8(0x4A, 0x4A, 0x50)

@@ -45,7 +45,7 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
             on_press: None,
         },
         toolbox::ToolboxItem {
-            icon: IconKind::Effects,
+            icon: IconKind::MagicWand,
             selected: false,
             on_press: None,
         },
@@ -120,7 +120,7 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
             on_press: None,
         },
         toolbox::ToolboxItem {
-            icon: IconKind::MagicWand,
+            icon: IconKind::Effects,
             selected: false,
             on_press: None,
         },
@@ -135,7 +135,7 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
                 chrome_button(theme, IconKind::Undo, true),
                 chrome_button(theme, IconKind::Redo, true),
                 chrome_button(theme, IconKind::Scissors, false),
-                chrome_button(theme, IconKind::Duplicate, false),
+                chrome_button(theme, IconKind::Clipboard, false),
             ]
             .spacing(theme.spacing.xs)
             .width(Length::FillPortion(2))
@@ -145,12 +145,13 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
                 .padding([0, theme.spacing.md])
                 .center_y(Length::Fill),
             row![
+                chrome_button(theme, IconKind::Eye, false),
                 chrome_button(theme, IconKind::ImageLandscape, false),
                 chrome_button(theme, IconKind::Adjustments, false),
                 chrome_button(theme, IconKind::Effects, false),
                 chrome_button(theme, IconKind::Menu, false),
-                round_control(theme, IconKind::WindowMinimize),
-                round_control(theme, IconKind::WindowMaximize),
+                round_control(theme, IconKind::ChevronDown),
+                round_control(theme, IconKind::ChevronUp),
                 round_control(theme, IconKind::WindowClose),
             ]
             .spacing(theme.spacing.xs)
