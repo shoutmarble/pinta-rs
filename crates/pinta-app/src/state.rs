@@ -11,14 +11,6 @@ pub enum ToolKind {
 }
 
 impl ToolKind {
-    pub fn title(self) -> &'static str {
-        match self {
-            Self::Pencil => "Pencil",
-            Self::Paintbrush => "Paintbrush",
-            Self::Eraser => "Eraser",
-            Self::Zoom => "Zoom",
-        }
-    }
 }
 
 #[derive(Debug, Clone)]

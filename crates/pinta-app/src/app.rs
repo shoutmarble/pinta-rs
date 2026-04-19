@@ -8,7 +8,7 @@ use crate::tools::pencil;
 use crate::view::main_window;
 
 pub fn title(state: &AppState) -> String {
-    format!("{} - Pinta Mock ({})", state.document_name, state.active_tool.title())
+    format!("{} - Pinta", state.document_name)
 }
 
 pub fn update(state: &mut AppState, message: AppMessage) -> Task<AppMessage> {

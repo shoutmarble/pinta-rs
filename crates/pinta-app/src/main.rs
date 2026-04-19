@@ -15,7 +15,9 @@ use std::thread;
 use std::time::Duration;
 
 fn main() -> iced::Result {
-    iced::application(title, update, view).run_with(|| (AppState::default(), initial_task()))
+    iced::application(title, update, view)
+        .window_size((1100.0, 750.0))
+        .run_with(|| (AppState::default(), initial_task()))
 }
 
 fn initial_task() -> Task<AppMessage> {

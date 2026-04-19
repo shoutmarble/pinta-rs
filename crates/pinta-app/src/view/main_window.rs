@@ -45,7 +45,7 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
             on_press: None,
         },
         toolbox::ToolboxItem {
-            icon: IconKind::MagicWand,
+            icon: IconKind::Effects,
             selected: false,
             on_press: None,
         },
@@ -149,8 +149,8 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
                 chrome_button(theme, IconKind::Adjustments, false),
                 chrome_button(theme, IconKind::Effects, false),
                 chrome_button(theme, IconKind::Menu, false),
-                round_control(theme, IconKind::ChevronDown),
-                round_control(theme, IconKind::ChevronUp),
+                round_control(theme, IconKind::WindowMinimize),
+                round_control(theme, IconKind::WindowMaximize),
                 round_control(theme, IconKind::WindowClose),
             ]
             .spacing(theme.spacing.xs)

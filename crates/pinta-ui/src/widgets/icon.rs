@@ -45,6 +45,8 @@ pub enum IconKind {
     Menu,
     ChevronDown,
     ChevronUp,
+    WindowMinimize,
+    WindowMaximize,
     WindowClose,
     Undo,
     Redo,
@@ -336,6 +338,12 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
         IconKind::ChevronUp => {
             frame.stroke(&Path::line(point(7.0, 15.0), point(12.0, 9.0)), thin);
             frame.stroke(&Path::line(point(12.0, 9.0), point(17.0, 15.0)), thin);
+        }
+        IconKind::WindowMinimize => {
+            frame.stroke(&Path::line(point(7.0, 15.0), point(17.0, 15.0)), thin);
+        }
+        IconKind::WindowMaximize => {
+            rect_outline(frame, point(7.0, 7.0), size_scale(size, 10.0, 10.0), thin);
         }
         IconKind::WindowClose => {
             frame.stroke(&Path::line(point(7.0, 7.0), point(17.0, 17.0)), thin);
