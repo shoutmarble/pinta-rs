@@ -15,7 +15,7 @@ pub fn view<'a, Message: Clone + 'a>(
     theme: &'a PintaTheme,
     items: impl IntoIterator<Item = ToolboxItem<Message>>,
 ) -> Element<'a, Message> {
-    let mut rows = column!().spacing(0).padding(0);
+    let mut rows = column!().spacing(theme.spacing.xs).padding(0);
     let mut pending: Option<ToolboxItem<Message>> = None;
 
     for item in items {
@@ -50,11 +50,11 @@ fn tool_button<'a, Message: Clone + 'a>(
     let base_bg = if selected {
         theme.colors.toolbox_selected_bg
     } else {
-        theme.colors.panel_bg
+        Color::TRANSPARENT
     };
 
     button(
-        container(icon::view(item.icon, 19.0, 19.0, if selected {
+        container(icon::view(item.icon, 18.0, 18.0, if selected {
             theme.colors.text_primary
         } else {
             Color::from_rgb8(0x4A, 0x4A, 0x50)
@@ -74,6 +74,12 @@ fn tool_button<'a, Message: Clone + 'a>(
                 button::Status::Active => base_bg,
             };
 
+            let border_width = if selected || matches!(status, button::Status::Hovered | button::Status::Pressed) {
+                1
+            } else {
+                0
+            };
+
             button::Style {
                 background: Some(Background::Color(background)),
                 text_color: if selected {
@@ -83,7 +89,7 @@ fn tool_button<'a, Message: Clone + 'a>(
                 },
                 border: Border::default()
                     .rounded(theme.radii.md)
-                    .width(1)
+                    .width(border_width)
                     .color(theme.colors.border_subtle),
                 shadow: Default::default(),
             }

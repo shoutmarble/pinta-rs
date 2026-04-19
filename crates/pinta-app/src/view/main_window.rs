@@ -138,10 +138,10 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
                 chrome_button(theme, IconKind::Clipboard, false),
             ]
             .spacing(theme.spacing.xs)
-            .width(Length::FillPortion(2))
+            .width(Length::FillPortion(3))
             .align_y(Alignment::Center),
             container(text(format!("{} - Pinta", state.document_name)).size(theme.typography.toolbar))
-                .width(Length::FillPortion(5))
+                .width(Length::FillPortion(4))
                 .padding([0, theme.spacing.md])
                 .center_y(Length::Fill),
             row![
@@ -155,7 +155,7 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
                 round_control(theme, IconKind::WindowClose),
             ]
             .spacing(theme.spacing.xs)
-            .width(Length::FillPortion(2))
+            .width(Length::FillPortion(3))
             .align_y(Alignment::Center),
         ]
         .align_y(Alignment::Center),
