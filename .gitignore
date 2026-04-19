@@ -1,0 +1,8 @@
+/target/
+/captures/
+/compares/
+
+*.log
+
+!.gitkeep
+!docs/readme/pinta-rs-current.png

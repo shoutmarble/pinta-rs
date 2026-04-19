@@ -1,0 +1,11 @@
+[package]
+name = "pinta-app"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+glam.workspace = true
+iced.workspace = true
+pinta-theme = { path = "../pinta-theme" }
+pinta-ui = { path = "../pinta-ui" }

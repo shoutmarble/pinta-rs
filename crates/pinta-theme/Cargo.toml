@@ -1,0 +1,9 @@
+[package]
+name = "pinta-theme"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+iced.workspace = true
+serde.workspace = true

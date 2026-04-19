@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/pinta-theme",
+  "crates/pinta-ui",
+  "crates/pinta-app",
+]
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+version = "0.1.0"
+
+[workspace.dependencies]
+glam = "0.30"
+iced = { version = "0.13", features = ["advanced", "canvas", "tokio"] }
+serde = { version = "1", features = ["derive"] }
