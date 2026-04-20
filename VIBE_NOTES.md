@@ -10,7 +10,7 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 
 ## Current Baseline
 
-- Workspace version: `0.1.1`
+- Workspace version: `0.1.2`
 - Branch: `main`
 - Upstream reference capture session: `../pinta-upstream/diagnostics/20260419-230608/`
 - Main upstream screenshot: `../pinta-upstream/diagnostics/20260419-230608/capture-004-main-window-spectacle.png`
@@ -32,6 +32,7 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 - On this machine, `cargo run` is stable with the workspace-local `WGPU_BACKEND=gl` configuration.
 - `.NET 10` is installed and `dotnet build Pinta.sln` succeeds in `../pinta-upstream`.
 - Upstream diagnostics use `spectacle` plus Python/Pillow for external window capture and canvas cropping.
+- Release artifacts are staged locally under `releases/` only for publishing and are ignored by git; canonical downloads live in GitHub Releases.
 
 ## Where The Upstream Hooks Live
 

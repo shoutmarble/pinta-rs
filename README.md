@@ -9,12 +9,12 @@
 - The mock app reproduces the main Pinta shell, toolbox, canvas scene, layers/history pads, and status bar.
 - The current screenshot in this README is generated locally from the running mock using `spectacle`.
 - The paired upstream workspace was instrumented with diagnostics and screenshot hooks so the Rust mock can be compared against a real Pinta build instead of guessing from static screenshots.
-- Version `0.1.1` is the current tagged workspace snapshot, including a Linux release artifact under `releases/0.1.1/`.
+- Version `0.1.2` is the current tagged workspace snapshot, published through GitHub Releases rather than checked-in release artifacts.
 
-## Release 0.1.1
+## Release 0.1.2
 
-- Git tag: `0.1.1`
-- Release artifact: `releases/0.1.1/pinta-rs-0.1.1-linux-x86_64.tar.gz`
+- Git tag: `0.1.2`
+- Release distribution: GitHub Releases for this repository
 - Resume notes for future LLM sessions: `VIBE_NOTES.md`
 
 ## LLM Used

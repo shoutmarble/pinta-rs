@@ -1,6 +1,7 @@
 /target/
 /captures/
 /compares/
+/releases/
 
 *.log
 
