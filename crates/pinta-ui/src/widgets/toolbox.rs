@@ -44,6 +44,7 @@ fn tool_button<'a, Message: Clone + 'a>(
     item: ToolboxItem<Message>,
 ) -> Element<'a, Message> {
     let selected = item.selected;
+    let icon_size = tool_icon_size(item.icon);
     let base_bg = if selected {
         theme.colors.toolbox_selected_bg
     } else {
@@ -53,8 +54,8 @@ fn tool_button<'a, Message: Clone + 'a>(
     button(
         container(icon::view(
             item.icon,
-            18.0,
-            18.0,
+            icon_size,
+            icon_size,
             if selected {
                 theme.colors.text_primary
             } else {
@@ -99,4 +100,12 @@ fn tool_button<'a, Message: Clone + 'a>(
         }
     })
     .into()
+}
+
+fn tool_icon_size(kind: IconKind) -> f32 {
+    match kind {
+        IconKind::Pan => 28.0,
+        IconKind::PaintBucket => 24.0,
+        _ => 22.0,
+    }
 }

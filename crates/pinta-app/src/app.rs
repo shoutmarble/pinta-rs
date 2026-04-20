@@ -97,7 +97,9 @@ fn unpremultiply_rgba(rgba: &mut [u8]) {
 
 fn on_canvas_pressed(state: &mut AppState, screen: DVec2) {
     let image = state.viewport.screen_to_image(screen);
-    state.cursor_text = format!("{:.0}, {:.0}", image.x, image.y);
+    if !state.lock_status_cursor {
+        state.cursor_text = format!("{:.0}, {:.0}", image.x, image.y);
+    }
 
     if state.active_tool == ToolKind::Pencil {
         state.pencil_session = Some(PencilSession {
@@ -110,7 +112,9 @@ fn on_canvas_pressed(state: &mut AppState, screen: DVec2) {
 fn on_canvas_moved(state: &mut AppState, screen: DVec2) {
     let image = state.viewport.screen_to_image(screen);
     state.viewport.hovered_image_pos = Some(image);
-    state.cursor_text = format!("{:.0}, {:.0}", image.x, image.y);
+    if !state.lock_status_cursor {
+        state.cursor_text = format!("{:.0}, {:.0}", image.x, image.y);
+    }
 
     if state.active_tool == ToolKind::Pencil {
         pencil::extend_stroke(state, image);
@@ -119,7 +123,9 @@ fn on_canvas_moved(state: &mut AppState, screen: DVec2) {
 
 fn on_canvas_released(state: &mut AppState, screen: DVec2) {
     let image = state.viewport.screen_to_image(screen);
-    state.cursor_text = format!("{:.0}, {:.0}", image.x, image.y);
+    if !state.lock_status_cursor {
+        state.cursor_text = format!("{:.0}, {:.0}", image.x, image.y);
+    }
 
     if state.active_tool == ToolKind::Pencil {
         pencil::end_stroke(state, image);

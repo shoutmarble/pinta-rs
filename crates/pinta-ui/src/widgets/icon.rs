@@ -7,6 +7,7 @@ use iced::{Color, Element, Length, Point, Rectangle, Renderer, Size, Theme};
 #[derive(Debug, Clone, Copy)]
 pub enum IconKind {
     DocumentNew,
+    CursorArrow,
     MovePixels,
     MoveSelection,
     Zoom,
@@ -78,6 +79,9 @@ fn svg_handle(kind: IconKind, color: Color) -> Option<svg::Handle> {
     let stroke = svg_color(color);
     let fill = svg_color(color);
     let markup = match kind {
+        IconKind::CursorArrow => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'><path fill='{fill}' stroke='none' d='M5 4.5 5 18l3.8-3 2.7 4.5 2.2-1.2-2.8-4.6H16z'/></svg>"#
+        ),
         IconKind::MovePixels => format!(
             r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path d='M12 4v16M4 12h16'/><path fill='{fill}' stroke='none' d='M12 2l2.5 4h-5zM12 22l-2.5-4h5zM2 12l4-2.5v5zM22 12l-4 2.5v-5z'/></svg>"#
         ),
@@ -88,7 +92,7 @@ fn svg_handle(kind: IconKind, color: Color) -> Option<svg::Handle> {
             r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='10' cy='10' r='5.5'/><path d='M14.5 14.5 20 20'/></svg>"#
         ),
         IconKind::Pan => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M8 20v-8c0-1 .8-1.8 1.8-1.8S11.5 11 11.5 12v-5c0-1 .8-1.8 1.8-1.8S15 6 15 7v4.5-3c0-1 .8-1.8 1.8-1.8S18.5 7.5 18.5 8.5V13c0-2 3-1.9 3 0v2.5c0 1.4-.5 2.8-1.5 3.8l-1.3 1.3c-.8.8-1.9 1.2-3 1.2h-3.6c-1.2 0-2.3-.5-3.1-1.4L6 17.5C5 16.4 3.5 17 3.5 18.2V19"/></svg>"#
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path fill='#ffffff' d='M7.2 18.3v-7.2c0-.9.7-1.6 1.5-1.6.9 0 1.5.7 1.5 1.6V7.4c0-.9.7-1.6 1.6-1.6s1.6.7 1.6 1.6v4.1V6.2c0-.9.7-1.6 1.6-1.6S17 5.3 17 6.2v5.3V7.5c0-.9.7-1.6 1.5-1.6.9 0 1.5.7 1.5 1.6v6.1c0 1.6-.6 3.1-1.7 4.2l-1.2 1.2c-.8.8-1.8 1.2-2.9 1.2h-2.7c-1.2 0-2.3-.5-3.2-1.3l-3.1-3c-.7-.7-1.4-.5-1.4.5v.3'/><path d='M7 16.2 4.4 13.7'/></svg>"#
         ),
         IconKind::RectSelect => format!(
             r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'><rect x='5' y='5' width='14' height='14' stroke-dasharray='3 3'/></svg>"#
@@ -109,13 +113,13 @@ fn svg_handle(kind: IconKind, color: Color) -> Option<svg::Handle> {
             r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 19 17.5 6.5l2 2L7 21H5z'/><path fill='{fill}' stroke='none' d='M18.2 5.8 20.3 3.7a1 1 0 0 1 1.4 0l.6.6a1 1 0 0 1 0 1.4l-2.1 2.1z'/></svg>"#
         ),
         IconKind::Eraser => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='{fill}' stroke='{stroke}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='m7 16 6-9 7 5-6 9z'/><path fill='none' d='M6 20h10'/></svg>"#
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'><path fill='{fill}' d='M10.2 19.1 19 10.3c.9-.9.9-2.4 0-3.3l-2.1-2.1c-.9-.9-2.4-.9-3.3 0l-8.4 8.4 4.9 5.8Z'/><path fill='#ffffff' stroke='#ffffff' d='M6.7 14.3 10.1 17.7 14.8 13l-3.4-3.4Z'/><path d='M14.2 6.7 18.4 10.9'/><path d='M9.6 19.4H20'/></svg>"#
         ),
         IconKind::PaintBucket => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path fill='{fill}' d='m6 10 6-6 6 6-6 6z'/><path fill='{fill}' stroke='none' d='M18.2 14.2c1.4 1.6 1.4 2.8 0 4.6-1.4-1.8-1.4-3 0-4.6Z'/><path d='M5 20h11'/></svg>"#
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path fill='{fill}' d='M5.7 11.2 12.3 4.6l5.2 5.2-6.6 6.6Z'/><path d='M7.9 13.4h8.1'/><path fill='{fill}' stroke='none' d='M18.7 10.9c1.3 1.6 1.3 2.9 0 4.5-1.1-1.6-1.1-2.9 0-4.5Z'/><path d='M4.1 19.2h15.8' stroke-width='2.3'/></svg>"#
         ),
         IconKind::Gradient => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><defs><linearGradient id='g' x1='0%' y1='100%' x2='100%' y2='0%'><stop offset='0%' stop-color='{fill}' stop-opacity='0.15'/><stop offset='100%' stop-color='{fill}' stop-opacity='1'/></linearGradient></defs><rect x='5' y='7' width='14' height='10' rx='1' fill='url(#g)' stroke='{stroke}' stroke-width='1.8'/></svg>"#
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><rect x='4.4' y='4.4' width='15.2' height='15.2' rx='0.4' stroke='{stroke}' stroke-width='2.2'/><rect x='7.2' y='9.6' width='2.8' height='2.8' fill='{fill}'/><rect x='10.4' y='9.6' width='2.8' height='2.8' fill='#ffffff'/><rect x='13.6' y='9.6' width='2.8' height='2.8' fill='{fill}'/><rect x='7.2' y='12.8' width='2.8' height='2.8' fill='#ffffff'/><rect x='10.4' y='12.8' width='2.8' height='2.8' fill='{fill}'/><rect x='13.6' y='12.8' width='2.8' height='2.8' fill='#ffffff'/></svg>"#
         ),
         IconKind::ColorPicker => format!(
             r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 17 16 8'/><circle cx='18' cy='6' r='1.7' fill='{fill}' stroke='none'/></svg>"#
@@ -209,6 +213,19 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             frame.stroke(&Path::line(point(15.0, 4.0), point(15.0, 8.0)), thin);
             frame.stroke(&Path::line(point(15.0, 8.0), point(19.0, 8.0)), thin);
             plus(frame, point(10.5, 13.0), size.width * 0.16, thin);
+        }
+        IconKind::CursorArrow => {
+            let arrow = Path::new(|b| {
+                b.move_to(point(5.0, 4.0));
+                b.line_to(point(5.0, 18.0));
+                b.line_to(point(8.8, 14.8));
+                b.line_to(point(11.8, 20.0));
+                b.line_to(point(13.6, 18.9));
+                b.line_to(point(10.6, 13.8));
+                b.line_to(point(16.0, 13.8));
+                b.close();
+            });
+            frame.fill(&arrow, Fill::from(color));
         }
         IconKind::MovePixels => {
             frame.stroke(&Path::line(point(12.0, 4.0), point(12.0, 20.0)), thin);

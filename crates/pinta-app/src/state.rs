@@ -1,6 +1,7 @@
 use glam::DVec2;
 use pinta_theme::PintaTheme;
 use pinta_ui::widgets::canvas_viewport::ViewportState;
+use std::env;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ToolKind {
@@ -28,6 +29,7 @@ pub struct AppState {
     pub cursor_text: String,
     pub image_text: String,
     pub selection_text: String,
+    pub lock_status_cursor: bool,
     pub history: Vec<String>,
     pub layers: Vec<String>,
     pub pencil_session: Option<PencilSession>,
@@ -35,6 +37,9 @@ pub struct AppState {
 
 impl Default for AppState {
     fn default() -> Self {
+        let lock_status_cursor = env::var("PINTA_MOCK_DIAGNOSTICS_DIR").is_ok()
+            || env::var("PINTA_MOCK_CAPTURE_PATH").is_ok();
+
         Self {
             theme: PintaTheme::default(),
             document_name: "sample-input.png".to_string(),
@@ -45,6 +50,7 @@ impl Default for AppState {
             cursor_text: "0, 0".to_string(),
             image_text: "800, 600".to_string(),
             selection_text: "0, 0, 0, 0".to_string(),
+            lock_status_cursor,
             history: vec!["Open Image".to_string()],
             layers: vec!["sample-input.png".to_string()],
             pencil_session: None,

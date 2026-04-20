@@ -2435,7 +2435,7 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "pinta-app"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "glam 0.32.1",
  "iced",
@@ -2446,7 +2446,7 @@ dependencies = [
 
 [[package]]
 name = "pinta-theme"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "iced",
  "serde",
@@ -2454,7 +2454,7 @@ dependencies = [
 
 [[package]]
 name = "pinta-ui"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "glam 0.32.1",
  "iced",
