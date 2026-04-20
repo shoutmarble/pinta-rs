@@ -274,9 +274,9 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
     .width(Length::Fixed(theme.sizing.right_sidebar_width as f32));
 
     let main = row![
-        container(toolbox::view(theme, tools)).padding([theme.spacing.md, 0]),
+        container(toolbox::view(theme, tools)).padding([theme.spacing.sm, 0]),
         container(viewport).width(Length::Fill).height(Length::Fill),
-        container(right_sidebar).padding([theme.spacing.md, 0]),
+        container(right_sidebar).padding([theme.spacing.sm, 0]),
     ]
     .height(Length::Fill)
     .spacing(0);
@@ -344,8 +344,8 @@ fn segmented_value<'a>(theme: &'a pinta_theme::PintaTheme, value: u32) -> Elemen
         ]
         .align_y(Alignment::Center),
     )
-    .width(Length::Fixed(176.0))
-    .height(Length::Fixed(36.0))
+    .width(Length::Fixed(168.0))
+    .height(Length::Fixed(34.0))
     .padding([0, theme.spacing.sm])
     .style(move |_| {
         iced::widget::container::Style::default()
@@ -357,7 +357,7 @@ fn segmented_value<'a>(theme: &'a pinta_theme::PintaTheme, value: u32) -> Elemen
 
 fn stepper_button<'a>(theme: &'a pinta_theme::PintaTheme, label: &'a str) -> Element<'a, AppMessage> {
     container(text(label).size(theme.typography.toolbar))
-        .width(Length::Fixed(28.0))
+        .width(Length::Fixed(26.0))
         .center(Length::Fill)
         .style(move |_| {
             iced::widget::container::Style::default()
@@ -376,7 +376,7 @@ fn dropdown_chip<'a>(theme: &'a pinta_theme::PintaTheme, label: &'a str, width: 
         .align_y(Alignment::Center),
     )
     .width(Length::Fixed(width))
-    .height(Length::Fixed(36.0))
+    .height(Length::Fixed(34.0))
     .padding([0, theme.spacing.sm])
     .style(move |_| {
         iced::widget::container::Style::default()
@@ -396,7 +396,7 @@ fn icon_dropdown_chip<'a>(theme: &'a pinta_theme::PintaTheme, icon_kind: IconKin
         .align_y(Alignment::Center),
     )
     .width(Length::Fixed(width))
-    .height(Length::Fixed(36.0))
+    .height(Length::Fixed(34.0))
     .padding([0, theme.spacing.sm])
     .style(move |_| {
         iced::widget::container::Style::default()

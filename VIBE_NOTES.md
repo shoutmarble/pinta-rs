@@ -14,9 +14,9 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 - Branch: `main`
 - Upstream reference capture session: `../pinta-upstream/diagnostics/20260419-230608/`
 - Main upstream screenshot: `../pinta-upstream/diagnostics/20260419-230608/capture-004-main-window-spectacle.png`
-- Latest retained mock screenshot before this note: `captures/pinta-rs-20260419-200348.png`
-- Latest compare bundle before this note: `compares/20260419-200350/`
-- Latest measured RMSE before this note: `49.5944`
+- Latest retained mock screenshot before this note: `captures/pinta-rs-20260419-201725.png`
+- Latest compare bundle before this note: `compares/20260419-201727/`
+- Latest measured RMSE before this note: `49.3821`
 - Best earlier RMSE mentioned in-session: `49.2716`
 
 ## Architecture Snapshot
@@ -45,18 +45,17 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 - The stronger baseline is the earlier pad/canvas/shell balance associated with the lower RMSE values.
 - Recent passes kept the improved toolbox glyph work from `crates/pinta-ui/src/widgets/icon.rs` while restoring more of the earlier shell geometry.
 - The latest retained pass adjusted:
-  - toolbox width and button size,
-  - toolbox icon scale and row spacing,
-  - unselected toolbox button chrome,
-  - toolbar icon sizing and muted opacity,
-  - toolbar helper centering so header icons no longer expand incorrectly.
+  - tighter top, options, dock, and footer heights,
+  - narrower side gutter padding around the main content,
+  - slightly denser tool option controls,
+  - previously retained toolbox and toolbar parity fixes.
 
 ## Next Resume Steps
 
 1. Freeze the current shell except for toolbox vertical spacing and icon scale.
 2. Re-run `./tools/capture_mock.sh` and `./tools/compare_with_upstream.sh` against the upstream reference screenshot.
 3. If RMSE improves further, refresh `docs/readme/pinta-rs-current.png` and consider a follow-up tag later.
-4. If RMSE regresses, keep the helper-level toolbar fix and back out only broader header grouping experiments.
+4. If RMSE regresses, keep the shell-density pass and back out only larger canvas or header geometry experiments.
 5. After visual tuning, move from parity mock work toward real editor behaviors one surface at a time.
 
 ## Quick Commands
@@ -67,5 +66,5 @@ cargo run
 ./tools/capture_mock.sh
 ./tools/compare_with_upstream.sh \
   ../pinta-upstream/diagnostics/20260419-230608/capture-004-main-window-spectacle.png \
-  captures/pinta-rs-20260419-200348.png
+  captures/pinta-rs-20260419-201725.png
 ```

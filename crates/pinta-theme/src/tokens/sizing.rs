@@ -18,13 +18,13 @@ pub struct Sizing {
 impl Default for Sizing {
     fn default() -> Self {
         Self {
-            top_bar_height: 46,
-            tool_options_height: 50,
+            top_bar_height: 44,
+            tool_options_height: 46,
             left_toolbar_width: 112,
             right_sidebar_width: 238,
-            footer_height: 42,
-            dock_header_height: 34,
-            dock_toolbar_height: 38,
+            footer_height: 38,
+            dock_header_height: 32,
+            dock_toolbar_height: 34,
             toolbox_button_size: 46,
             layer_row_height: 36,
             history_row_height: 24,
