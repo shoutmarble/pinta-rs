@@ -115,7 +115,6 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
     let workspace = container(viewport)
         .width(Length::Fill)
         .height(Length::Fill)
-        .padding(theme.spacing.sm)
         .style(move |_| {
             iced::widget::container::Style::default()
                 .background(Background::Color(theme.colors.canvas_surround_bg))

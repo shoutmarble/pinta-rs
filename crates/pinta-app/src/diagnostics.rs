@@ -467,8 +467,8 @@ fn runtime_layout(state: &AppState, window_width: u32, window_height: u32) -> Ru
     let canvas_width = right_sidebar_x.saturating_sub(left_toolbar_width);
     let surface_width = (state.viewport.viewport_size.0 as f32 * state.viewport.zoom).round() as u32;
     let surface_height = (state.viewport.viewport_size.1 as f32 * state.viewport.zoom).round() as u32;
-    let canvas_x = left_toolbar_width + canvas_width.saturating_sub(surface_width) / 2;
-    let canvas_y = main_y + main_height.saturating_sub(surface_height) / 2;
+    let canvas_x = left_toolbar_width + px(10.0).min(canvas_width.saturating_sub(surface_width));
+    let canvas_y = main_y + py(41.0).min(main_height.saturating_sub(surface_height));
 
     let top_padding = py(spacing.sm);
     let button_width = px(f32::from(sizing.toolbox_button_size));
@@ -490,9 +490,9 @@ fn runtime_layout(state: &AppState, window_width: u32, window_height: u32) -> Ru
             name: "tool-toolbar",
             rect: Rect {
                 x: 0,
-                y: 0,
+                y: top_bar_height,
                 width: window_width,
-                height: main_y,
+                height: tool_options_height,
             },
         },
         NamedRect {

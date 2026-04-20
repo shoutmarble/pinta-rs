@@ -18,19 +18,19 @@ pub struct Sizing {
 impl Default for Sizing {
     fn default() -> Self {
         Self {
-            top_bar_height: 44,
-            tool_options_height: 46,
-            left_toolbar_width: 94,
-            right_sidebar_width: 222,
-            footer_height: 34,
+            top_bar_height: 46,
+            tool_options_height: 50,
+            left_toolbar_width: 126,
+            right_sidebar_width: 262,
+            footer_height: 54,
             dock_header_height: 32,
             dock_toolbar_height: 34,
             toolbox_button_size: 46,
             layer_row_height: 34,
             history_row_height: 24,
-            palette_lead_width: 360,
+            palette_lead_width: 388,
             palette_cell_size: 20,
-            zoom_control_width: 82,
+            zoom_control_width: 96,
         }
     }
 }

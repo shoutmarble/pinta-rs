@@ -104,7 +104,7 @@ impl Program<CanvasAction> for ViewportProgram {
         _cursor: mouse::Cursor,
     ) -> Vec<Geometry> {
         let mut frame = Frame::new(renderer, bounds.size());
-        let surface_bounds = centered_surface_rect(bounds.size(), self.state.surface_size());
+        let surface_bounds = anchored_surface_rect(bounds.size(), self.state.surface_size());
         let page = Path::rectangle(surface_bounds.position(), surface_bounds.size());
         frame.fill(&page, self.theme.colors.canvas_page_bg);
         frame.stroke(
@@ -179,7 +179,7 @@ impl Program<CanvasAction> for ViewportProgram {
         bounds: Rectangle,
         cursor: mouse::Cursor,
     ) -> Option<Action<CanvasAction>> {
-        let surface_bounds = centered_surface_rect(bounds.size(), self.state.surface_size());
+        let surface_bounds = anchored_surface_rect(bounds.size(), self.state.surface_size());
 
         match event {
             Event::Mouse(mouse::Event::CursorMoved { position }) => {
@@ -369,9 +369,11 @@ fn draw_scripted_effect(frame: &mut Frame, active_tool: IconKind, state: &Viewpo
     }
 }
 
-fn centered_surface_rect(bounds: Size, surface: Size) -> Rectangle {
-    let x = ((bounds.width - surface.width) / 2.0).max(0.0);
-    let y = ((bounds.height - surface.height) / 2.0).max(0.0);
+fn anchored_surface_rect(bounds: Size, surface: Size) -> Rectangle {
+    let extra_width = (bounds.width - surface.width).max(0.0);
+    let extra_height = (bounds.height - surface.height).max(0.0);
+    let x = extra_width.min(20.0);
+    let y = extra_height.min(82.0);
 
     Rectangle {
         x,

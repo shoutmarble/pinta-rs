@@ -13,8 +13,8 @@ pub fn view<'a, Message: 'a>(
 ) -> Element<'a, Message> {
     let palette_lead = row![
         color_stack_panel(theme),
-        blank_chip(theme, 70.0),
-        swatch(theme, [0x00, 0x00, 0x00], 18.0, 18.0),
+        blank_chip(theme, 74.0),
+        swatch(theme, [0x00, 0x00, 0x00], 20.0, 20.0),
         swatch_row(
             theme,
             &[
@@ -23,8 +23,8 @@ pub fn view<'a, Message: 'a>(
                 [0xB5, 0xB5, 0xB5],
                 [0xD6, 0xD6, 0xD6],
             ],
-            14.0,
-            18.0,
+            16.0,
+            20.0,
         ),
         swatch_row(
             theme,
@@ -42,17 +42,17 @@ pub fn view<'a, Message: 'a>(
                 [0xEA, 0x20, 0xF0],
                 [0xFF, 0x2F, 0xA9],
             ],
-            12.0,
-            18.0,
+            14.0,
+            20.0,
         ),
     ]
     .spacing(theme.spacing.xs)
     .align_y(iced::Alignment::Center);
 
     let zoom_controls = row![
-        flat_control(theme, IconKind::ValueDecrease, 24.0),
+        flat_control(theme, IconKind::ValueDecrease, 26.0),
         zoom_display(theme, zoom_text),
-        flat_control(theme, IconKind::ValueIncrease, 24.0),
+        flat_control(theme, IconKind::ValueIncrease, 26.0),
     ]
     .spacing(0)
     .align_y(iced::Alignment::Center);
@@ -62,8 +62,8 @@ pub fn view<'a, Message: 'a>(
         icon::view(IconKind::CursorArrow, 15.0, 15.0, theme.colors.text_muted),
         metric_text(theme, cursor_text),
     ]
-    .spacing(theme.spacing.sm)
-    .padding([theme.spacing.xs, theme.spacing.sm])
+    .spacing(theme.spacing.md)
+    .padding([theme.spacing.sm, theme.spacing.md])
     .align_y(iced::Alignment::Center);
 
     if selection_text != "0, 0, 0, 0" {
@@ -101,18 +101,18 @@ fn metric_text<'a, Message: 'a>(theme: &'a PintaTheme, value: String) -> Element
 }
 
 fn color_stack_panel<'a, Message: 'a>(theme: &'a PintaTheme) -> Element<'a, Message> {
-    let back = swatch(theme, [0xFF, 0xFF, 0xFF], 22.0, 22.0);
-    let front = swatch(theme, [0x00, 0x00, 0x00], 22.0, 22.0);
+    let back = swatch(theme, [0xFF, 0xFF, 0xFF], 28.0, 28.0);
+    let front = swatch(theme, [0x00, 0x00, 0x00], 28.0, 28.0);
 
     let stacked = container(
         column![
-            row![container(back).width(Length::Fixed(28.0))],
-            row![container(front).width(Length::Fixed(28.0))],
+            row![container(back).width(Length::Fixed(34.0))],
+            row![container(front).width(Length::Fixed(34.0))],
         ]
-        .spacing(-10.0),
+        .spacing(-12.0),
     )
-    .width(Length::Fixed(32.0))
-    .height(Length::Fixed(28.0));
+    .width(Length::Fixed(38.0))
+    .height(Length::Fixed(34.0));
 
     row![
         stacked,
@@ -132,8 +132,8 @@ fn color_action_button<'a, Message: 'a>(
     icon_kind: IconKind,
 ) -> Element<'a, Message> {
     container(icon::view(icon_kind, 10.0, 10.0, theme.colors.text_muted))
-        .width(Length::Fixed(16.0))
-        .height(Length::Fixed(11.0))
+        .width(Length::Fixed(18.0))
+        .height(Length::Fixed(14.0))
         .align_x(iced::alignment::Horizontal::Center)
         .align_y(iced::alignment::Vertical::Center)
         .into()
@@ -142,7 +142,7 @@ fn color_action_button<'a, Message: 'a>(
 fn blank_chip<'a, Message: 'a>(theme: &'a PintaTheme, width: f32) -> Element<'a, Message> {
     container(text(""))
         .width(Length::Fixed(width))
-        .height(Length::Fixed(28.0))
+        .height(Length::Fixed(32.0))
         .style(move |_| {
             container::Style::default().background(Background::Color(theme.colors.hover_bg))
         })
@@ -169,7 +169,7 @@ fn flat_control<'a, Message: 'a>(
 ) -> Element<'a, Message> {
     container(icon::view(icon_kind, 12.0, 12.0, theme.colors.text_primary))
     .width(Length::Fixed(width))
-    .height(Length::Fixed(24.0))
+    .height(Length::Fixed(28.0))
     .center(Length::Fill)
     .into()
 }
@@ -200,7 +200,7 @@ fn zoom_display<'a, Message: 'a>(
         .align_y(iced::Alignment::Center),
     )
     .width(Length::Fixed(theme.sizing.zoom_control_width as f32))
-    .height(Length::Fixed(24.0))
+    .height(Length::Fixed(28.0))
     .padding([theme.spacing.xs, theme.spacing.xs])
     .style(move |_| {
         container::Style::default()
@@ -226,7 +226,7 @@ fn swatch<'a, Message: 'a>(
                 )))
                 .border(
                     Border::default()
-                        .rounded(2.0)
+                    .rounded(0.0)
                         .width(1)
                         .color(theme.colors.border_strong),
                 )
