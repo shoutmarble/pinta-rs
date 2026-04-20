@@ -196,9 +196,9 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
                 row![
                     icon::view(IconKind::Eye, 18.0, 18.0, theme.colors.text_muted),
                     text(layer.clone()).size(theme.typography.body),
-                    container(icon::view(IconKind::ThumbnailSample, 60.0, 34.0, theme.colors.text_primary))
-                        .width(Length::Fixed(60.0))
-                        .height(Length::Fixed(34.0))
+                    container(icon::view(IconKind::ThumbnailSample, 52.0, 30.0, theme.colors.text_primary))
+                        .width(Length::Fixed(52.0))
+                        .height(Length::Fixed(30.0))
                         .style(move |_| {
                             iced::widget::container::Style::default()
                                 .background(iced::Background::Color(theme.colors.canvas_page_bg))
@@ -214,7 +214,7 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
             )
             .height(Length::Fixed(theme.sizing.layer_row_height as f32))
             .width(Length::Fill)
-            .padding([0, theme.spacing.md])
+            .padding([0, theme.spacing.sm])
             .style(move |_| {
                 iced::widget::container::Style::default()
                     .background(iced::Background::Color(theme.colors.selected_bg))
@@ -246,7 +246,7 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
                     )
                     .height(Length::Fixed(theme.sizing.history_row_height as f32))
                     .width(Length::Fill)
-                    .padding([0, theme.spacing.md])
+                    .padding([0, theme.spacing.sm])
                     .style(move |_| {
                         iced::widget::container::Style::default()
                             .background(iced::Background::Color(theme.colors.panel_bg))
