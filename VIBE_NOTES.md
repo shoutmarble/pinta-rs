@@ -14,9 +14,9 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 - Branch: `main`
 - Upstream reference capture session: `../pinta-upstream/diagnostics/20260419-230608/`
 - Main upstream screenshot: `../pinta-upstream/diagnostics/20260419-230608/capture-004-main-window-spectacle.png`
-- Latest retained mock screenshot before this note: `captures/pinta-rs-20260419-201904.png`
-- Latest compare bundle before this note: `compares/20260419-201907/`
-- Latest measured RMSE before this note: `49.2969`
+- Latest retained mock screenshot before this note: `captures/pinta-rs-20260419-203253.png`
+- Latest compare bundle before this note: `compares/20260419-203259/`
+- Latest measured RMSE before this note: `48.3335`
 - Best earlier RMSE mentioned in-session: `49.2716`
 
 ## Architecture Snapshot
@@ -34,7 +34,7 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 - Upstream diagnostics use `spectacle` plus Python/Pillow for external window capture and canvas cropping.
 - Release artifacts are staged locally under `releases/` only for publishing and are ignored by git; canonical downloads live in GitHub Releases.
 - Mock screenshots are now captured internally via Iced `window::screenshot()` and written atomically by the app; this avoids active-window focus drift from `spectacle --activewindow`.
-- Internal mock capture changes the compare baseline relative to earlier external captures, so old RMSE numbers are not directly comparable to the new workflow.
+- The compare script now crops external window screenshots down to client area before scoring, so the new internal mock captures are comparable again.
 
 ## Where The Upstream Hooks Live
 
@@ -51,6 +51,7 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
   - narrower side gutter padding around the main content,
   - slightly denser tool option controls,
   - narrower right dock width and more compact layer/history row content,
+  - tighter toolbox row density and client-area compare normalization,
   - previously retained toolbox and toolbar parity fixes.
 
 ## Next Resume Steps
@@ -58,7 +59,7 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 1. Freeze the current shell except for toolbox vertical spacing and icon scale.
 2. Re-run `./tools/capture_mock.sh` and `./tools/compare_with_upstream.sh` against the upstream reference screenshot.
 3. If RMSE improves further, refresh `docs/readme/pinta-rs-current.png` and consider a follow-up tag later.
-4. If RMSE regresses, keep the shell-density and right-dock compression passes and back out only larger canvas or header geometry experiments.
+4. If RMSE regresses, keep the client-area compare normalization and shell-density/right-dock passes and back out only larger canvas or header geometry experiments.
 5. If mock capture becomes inconsistent again, debug the internal screenshot/save path before trusting compare metrics.
 5. After visual tuning, move from parity mock work toward real editor behaviors one surface at a time.
 
@@ -70,5 +71,5 @@ cargo run
 ./tools/capture_mock.sh
 ./tools/compare_with_upstream.sh \
   ../pinta-upstream/diagnostics/20260419-230608/capture-004-main-window-spectacle.png \
-  captures/pinta-rs-20260419-201904.png
+  captures/pinta-rs-20260419-203253.png
 ```

@@ -35,6 +35,28 @@ from PIL import Image, ImageChops, ImageOps
 
 upstream_path, mock_path, upstream_norm, mock_norm, side_by_side, diff_image, metric_file = sys.argv[1:]
 
+# Learned from matching an older external-window mock capture to the newer
+# internal client-area capture. These ratios strip window chrome and shadows
+# from Spectacle-style window screenshots so they compare against the same
+# client area captured via iced window::screenshot().
+CLIENT_CROP = {
+	"left": 132 / 2460,
+	"right": 128 / 2460,
+	"top": 180 / 1840,
+	"bottom": 160 / 1840,
+}
+
+def crop_window_chrome(image):
+	left = int(round(image.width * CLIENT_CROP["left"]))
+	right = int(round(image.width * CLIENT_CROP["right"]))
+	top = int(round(image.height * CLIENT_CROP["top"]))
+	bottom = int(round(image.height * CLIENT_CROP["bottom"]))
+
+	if left + right >= image.width or top + bottom >= image.height:
+		return image
+
+	return image.crop((left, top, image.width - right, image.height - bottom))
+
 def content_crop(image):
 	rgb = image.convert("RGB")
 	mask = Image.eval(ImageOps.grayscale(rgb), lambda value: 255 if value > 10 else 0)
@@ -75,8 +97,13 @@ def content_crop(image):
 
 	return image
 
-upstream = content_crop(Image.open(upstream_path).convert("RGBA"))
+upstream = Image.open(upstream_path).convert("RGBA")
 mock = content_crop(Image.open(mock_path).convert("RGBA"))
+
+if upstream.width >= mock.width + 160 and upstream.height >= mock.height + 120:
+	upstream = crop_window_chrome(upstream)
+
+upstream = content_crop(upstream)
 mock = mock.resize(upstream.size, Image.Resampling.LANCZOS)
 upstream_rgb = upstream.convert("RGB")
 mock_rgb = mock.convert("RGB")

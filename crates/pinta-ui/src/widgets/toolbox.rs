@@ -15,7 +15,7 @@ pub fn view<'a, Message: Clone + 'a>(
     theme: &'a PintaTheme,
     items: impl IntoIterator<Item = ToolboxItem<Message>>,
 ) -> Element<'a, Message> {
-    let mut rows = column!().spacing(theme.spacing.xs).padding(0);
+    let mut rows = column!().spacing(theme.spacing.xxs).padding(0);
     let mut pending: Option<ToolboxItem<Message>> = None;
 
     for item in items {
@@ -23,7 +23,7 @@ pub fn view<'a, Message: Clone + 'a>(
             rows = rows.push(
                 row![tool_button(theme, left), tool_button(theme, item)]
                     .spacing(theme.spacing.xs)
-                    .padding([0, theme.spacing.xs]),
+                    .padding([0, theme.spacing.xxs]),
             );
         } else {
             pending = Some(item);
@@ -33,7 +33,7 @@ pub fn view<'a, Message: Clone + 'a>(
     if let Some(item) = pending {
         rows = rows.push(
             row![tool_button(theme, item)]
-                .padding([0, theme.spacing.xs]),
+                .padding([0, theme.spacing.xxs]),
         );
     }
 

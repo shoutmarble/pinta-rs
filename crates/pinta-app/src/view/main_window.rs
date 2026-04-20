@@ -179,7 +179,7 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
             dropdown_chip(theme, "Normal", 126.0),
             icon_dropdown_chip(theme, IconKind::LineCurve, 48.0),
         ]
-        .spacing(theme.spacing.md)
+        .spacing(theme.spacing.sm)
         .align_y(Alignment::Center),
     )
     .padding([theme.spacing.xs, theme.spacing.md])
