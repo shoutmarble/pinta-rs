@@ -1,5 +1,6 @@
 use glam::DVec2;
-use iced::{Element, Task};
+use iced::{Element, Task, window};
+use image::{ImageBuffer, ImageFormat, Rgba};
 use pinta_ui::widgets::canvas_viewport::CanvasAction;
 
 use crate::message::AppMessage;
@@ -15,6 +16,26 @@ pub fn update(state: &mut AppState, message: AppMessage) -> Task<AppMessage> {
     match message {
         AppMessage::ToolSelected(tool) => state.active_tool = tool,
         AppMessage::CaptureFinished => {}
+        AppMessage::CaptureRequested(output_path) => {
+            return window::get_latest().then(move |maybe_id| {
+                let Some(id) = maybe_id else {
+                    return Task::none();
+                };
+
+                let capture_path = output_path.clone();
+
+                window::screenshot(id).then(move |screenshot| {
+                    let output_path = capture_path.clone();
+
+                    Task::perform(
+                        async move {
+                            save_window_capture(output_path, screenshot);
+                        },
+                        |_| AppMessage::CaptureFinished,
+                    )
+                })
+            });
+        }
         AppMessage::Canvas(action) => match action {
             CanvasAction::CursorMoved(screen) => on_canvas_moved(state, screen),
             CanvasAction::Pressed(screen) => on_canvas_pressed(state, screen),
@@ -32,6 +53,36 @@ pub fn update(state: &mut AppState, message: AppMessage) -> Task<AppMessage> {
 
 pub fn view(state: &AppState) -> Element<'_, AppMessage> {
     main_window::view(state)
+}
+
+fn save_window_capture(output_path: String, screenshot: window::Screenshot) {
+    eprintln!(
+        "capture screenshot size={}x{} bytes={}",
+        screenshot.size.width,
+        screenshot.size.height,
+        screenshot.bytes.len()
+    );
+
+    let Some(image) = ImageBuffer::<Rgba<u8>, _>::from_raw(
+        screenshot.size.width,
+        screenshot.size.height,
+        screenshot.bytes.to_vec(),
+    ) else {
+        eprintln!("capture failed: screenshot bytes did not match image dimensions");
+        return;
+    };
+
+    let temp_path = format!("{output_path}.tmp");
+    let ready_path = format!("{output_path}.ready");
+
+    if image.save_with_format(&temp_path, ImageFormat::Png).is_ok() {
+        if std::fs::rename(&temp_path, &output_path).is_ok() {
+            let _ = std::fs::write(&ready_path, b"ok");
+            eprintln!("capture saved to {output_path}");
+        }
+    } else {
+        eprintln!("capture failed: could not encode png to {temp_path}");
+    }
 }
 
 fn on_canvas_pressed(state: &mut AppState, screen: DVec2) {

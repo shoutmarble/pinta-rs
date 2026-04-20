@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT_DIR="${1:-$ROOT_DIR/captures}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 OUTPUT_PATH="$OUTPUT_DIR/pinta-rs-$STAMP.png"
+READY_PATH="$OUTPUT_PATH.ready"
 LOG_PATH="$OUTPUT_DIR/pinta-rs-$STAMP.log"
 
 mkdir -p "$OUTPUT_DIR"
@@ -20,7 +21,8 @@ cleanup() {
 trap cleanup EXIT
 
 for _ in $(seq 1 80); do
-	if [[ -f "$OUTPUT_PATH" ]]; then
+	if [[ -f "$READY_PATH" && -f "$OUTPUT_PATH" ]]; then
+		rm -f "$READY_PATH"
 		echo "$OUTPUT_PATH"
 		exit 0
 	fi

@@ -33,6 +33,8 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 - `.NET 10` is installed and `dotnet build Pinta.sln` succeeds in `../pinta-upstream`.
 - Upstream diagnostics use `spectacle` plus Python/Pillow for external window capture and canvas cropping.
 - Release artifacts are staged locally under `releases/` only for publishing and are ignored by git; canonical downloads live in GitHub Releases.
+- Mock screenshots are now captured internally via Iced `window::screenshot()` and written atomically by the app; this avoids active-window focus drift from `spectacle --activewindow`.
+- Internal mock capture changes the compare baseline relative to earlier external captures, so old RMSE numbers are not directly comparable to the new workflow.
 
 ## Where The Upstream Hooks Live
 
@@ -57,6 +59,7 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 2. Re-run `./tools/capture_mock.sh` and `./tools/compare_with_upstream.sh` against the upstream reference screenshot.
 3. If RMSE improves further, refresh `docs/readme/pinta-rs-current.png` and consider a follow-up tag later.
 4. If RMSE regresses, keep the shell-density and right-dock compression passes and back out only larger canvas or header geometry experiments.
+5. If mock capture becomes inconsistent again, debug the internal screenshot/save path before trusting compare metrics.
 5. After visual tuning, move from parity mock work toward real editor behaviors one surface at a time.
 
 ## Quick Commands

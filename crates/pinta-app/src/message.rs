@@ -6,6 +6,7 @@ use crate::state::ToolKind;
 pub enum AppMessage {
     ToolSelected(ToolKind),
     Canvas(CanvasAction),
+    CaptureRequested(String),
     CaptureFinished,
 }
 
