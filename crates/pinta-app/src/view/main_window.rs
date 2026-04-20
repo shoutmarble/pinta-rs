@@ -1,5 +1,5 @@
 use iced::widget::{column, container, row, scrollable, text};
-use iced::{Alignment, Background, Border, Color, Element, Length};
+use iced::{Alignment, Background, Border, Color, Element, Length, alignment::{Horizontal, Vertical}};
 use pinta_ui::widgets::{canvas_viewport::CanvasViewport, icon::{self, IconKind}, pad, status_bar, toolbox};
 
 use crate::message::AppMessage;
@@ -305,16 +305,17 @@ fn chrome_button<'a>(theme: &'a pinta_theme::PintaTheme, icon_kind: IconKind, mu
             theme.colors.text_muted.r,
             theme.colors.text_muted.g,
             theme.colors.text_muted.b,
-            0.30,
+            0.22,
         )
     } else {
         theme.colors.text_primary
     };
 
-    container(icon::view(icon_kind, 18.0, 18.0, icon_color))
-        .width(Length::Fixed(24.0))
-        .height(Length::Fixed(24.0))
-        .center(Length::Fill)
+    container(icon::view(icon_kind, 19.0, 19.0, icon_color))
+        .width(Length::Fixed(22.0))
+        .height(Length::Fixed(22.0))
+        .align_x(Horizontal::Center)
+        .align_y(Vertical::Center)
         .into()
 }
 
@@ -322,7 +323,8 @@ fn round_control<'a>(theme: &'a pinta_theme::PintaTheme, icon_kind: IconKind) ->
     container(icon::view(icon_kind, 14.0, 14.0, theme.colors.text_primary))
         .width(Length::Fixed(24.0))
         .height(Length::Fixed(24.0))
-        .center(Length::Fill)
+        .align_x(Horizontal::Center)
+        .align_y(Vertical::Center)
         .style(move |_| {
             iced::widget::container::Style::default()
                 .background(Background::Color(theme.colors.hover_bg))
