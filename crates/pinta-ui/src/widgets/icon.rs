@@ -92,13 +92,13 @@ fn svg_handle(kind: IconKind, color: Color) -> Option<svg::Handle> {
             r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='10' cy='10' r='5.5'/><path d='M14.5 14.5 20 20'/></svg>"#
         ),
         IconKind::Pan => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path fill='#ffffff' d='M7.2 18.3v-7.2c0-.9.7-1.6 1.5-1.6.9 0 1.5.7 1.5 1.6V7.4c0-.9.7-1.6 1.6-1.6s1.6.7 1.6 1.6v4.1V6.2c0-.9.7-1.6 1.6-1.6S17 5.3 17 6.2v5.3V7.5c0-.9.7-1.6 1.5-1.6.9 0 1.5.7 1.5 1.6v6.1c0 1.6-.6 3.1-1.7 4.2l-1.2 1.2c-.8.8-1.8 1.2-2.9 1.2h-2.7c-1.2 0-2.3-.5-3.2-1.3l-3.1-3c-.7-.7-1.4-.5-1.4.5v.3'/><path d='M7 16.2 4.4 13.7'/></svg>"#
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path fill='{fill}' d='M18 24h-6.55c-1.08 0-2.14-.45-2.89-1.23l-7.3-7.61 2.07-1.83c.62-.55 1.53-.66 2.26-.27L8 14.34V4.79c0-1.38 1.12-2.5 2.5-2.5.17 0 .34.02.51.05.09-1.3 1.17-2.33 2.49-2.33.86 0 1.61.43 2.06 1.09.29-.12.61-.18.94-.18 1.38 0 2.5 1.12 2.5 2.5v.28c.16-.03.33-.05.5-.05 1.38 0 2.5 1.12 2.5 2.5V20c0 2.21-1.79 4-4 4zM4.14 15.28l5.86 6.1c.38.39.9.62 1.44.62H18c1.1 0 2-.9 2-2V6.15c0-.28-.22-.5-.5-.5s-.5.22-.5.5V12h-2V3.42c0-.28-.22-.5-.5-.5s-.5.22-.5.5V12h-2V2.51c0-.28-.22-.5-.5-.5s-.5.22-.5.5V12h-2V4.79c0-.28-.22-.5-.5-.5s-.5.23-.5.5v12.87l-5.35-2.83-.51.45z'/></svg>"#
         ),
         IconKind::RectSelect => format!(
             r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'><rect x='5' y='5' width='14' height='14' stroke-dasharray='3 3'/></svg>"#
         ),
         IconKind::EllipseSelect => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-dasharray='3 3'><circle cx='12' cy='12' r='7'/></svg>"#
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.3' stroke-dasharray='3.1 3.1'><circle cx='12' cy='12' r='7.7'/></svg>"#
         ),
         IconKind::LassoSelect => format!(
             r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 8c1.5-2.7 8.8-3.7 11.3-.9 2.2 2.4 1.4 6.2-1.6 8-2.3 1.4-5.8 1.8-8 .8-3.6-1.7-3.5-5.3-1.7-7.9Z'/></svg>"#
@@ -113,13 +113,13 @@ fn svg_handle(kind: IconKind, color: Color) -> Option<svg::Handle> {
             r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 19 17.5 6.5l2 2L7 21H5z'/><path fill='{fill}' stroke='none' d='M18.2 5.8 20.3 3.7a1 1 0 0 1 1.4 0l.6.6a1 1 0 0 1 0 1.4l-2.1 2.1z'/></svg>"#
         ),
         IconKind::Eraser => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'><path fill='{fill}' d='M10.2 19.1 19 10.3c.9-.9.9-2.4 0-3.3l-2.1-2.1c-.9-.9-2.4-.9-3.3 0l-8.4 8.4 4.9 5.8Z'/><path fill='#ffffff' stroke='#ffffff' d='M6.7 14.3 10.1 17.7 14.8 13l-3.4-3.4Z'/><path d='M14.2 6.7 18.4 10.9'/><path d='M9.6 19.4H20'/></svg>"#
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path fill='{fill}' d='M15.8698 2.66878L20.8384 7.6373C21.717 8.51598 21.717 9.9406 20.8384 10.8193L12.1566 19.4998L18.2544 19.5C18.6341 19.5 18.9479 19.7821 18.9976 20.1482L19.0044 20.25C19.0044 20.6297 18.7223 20.9435 18.3562 20.9931L18.2544 21L9.84443 21.0012C9.22822 21.0348 8.60082 20.8163 8.1301 20.3456L3.16157 15.377C2.28289 14.4984 2.28289 13.0737 3.16157 12.1951L12.6879 2.66878C13.5665 1.7901 14.9912 1.7901 15.8698 2.66878ZM11.6976 17.7583L5.7429 11.8035L4.23657 13.2701C3.94368 13.5629 3.94368 14.0378 4.23657 14.3307L9.18233 19.2763C9.4798 19.5646 9.95462 19.5571 10.2429 19.2596L11.6976 17.7583Z'/></svg>"#
         ),
         IconKind::PaintBucket => format!(
             r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path fill='{fill}' d='M5.7 11.2 12.3 4.6l5.2 5.2-6.6 6.6Z'/><path d='M7.9 13.4h8.1'/><path fill='{fill}' stroke='none' d='M18.7 10.9c1.3 1.6 1.3 2.9 0 4.5-1.1-1.6-1.1-2.9 0-4.5Z'/><path d='M4.1 19.2h15.8' stroke-width='2.3'/></svg>"#
         ),
         IconKind::Gradient => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><rect x='4.4' y='4.4' width='15.2' height='15.2' rx='0.4' stroke='{stroke}' stroke-width='2.2'/><rect x='7.2' y='9.6' width='2.8' height='2.8' fill='{fill}'/><rect x='10.4' y='9.6' width='2.8' height='2.8' fill='#ffffff'/><rect x='13.6' y='9.6' width='2.8' height='2.8' fill='{fill}'/><rect x='7.2' y='12.8' width='2.8' height='2.8' fill='#ffffff'/><rect x='10.4' y='12.8' width='2.8' height='2.8' fill='{fill}'/><rect x='13.6' y='12.8' width='2.8' height='2.8' fill='#ffffff'/></svg>"#
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path fill='{fill}' d='M11 9h2v2h-2V9zm-2 2h2v2H9v-2zm4 0h2v2h-2v-2zm2-2h2v2h-2V9zM7 9h2v2H7V9zm12-6H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 18H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm2-7h-2v2h2v2h-2v-2h-2v2h-2v-2h-2v2H9v-2H7v2H5v-2h2v-2H5V5h14v6z'/></svg>"#
         ),
         IconKind::ColorPicker => format!(
             r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 17 16 8'/><circle cx='18' cy='6' r='1.7' fill='{fill}' stroke='none'/></svg>"#

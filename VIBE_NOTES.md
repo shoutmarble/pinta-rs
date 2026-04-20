@@ -10,9 +10,9 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 
 ## Current Baseline
 
-- Workspace version: `0.1.6`
+- Workspace version: `0.1.7`
 - Branch: `main`
-- Upstream reference capture session: `../upstream-diagnostics-output/20260420-144419/`
+- Upstream reference capture session: `../upstream-diagnostics-output/20260420-181305/`
 - Main upstream screenshot: `../pinta-upstream-window.png`
 - Latest retained mock screenshot before this note: `captures/pinta-rs-20260419-203253.png`
 - Latest compare bundle before this note: `compares/20260419-203259/`
@@ -83,6 +83,7 @@ Do not write logs, screenshots, crops, or compare outputs under `pinta-rs/` or `
 
 - The stronger baseline is the earlier pad/canvas/shell balance associated with the lower RMSE values.
 - Recent passes kept the improved toolbox glyph work from `crates/pinta-ui/src/widgets/icon.rs` while restoring more of the earlier shell geometry.
+- The latest retained icon pass switched `gradient`, `pan`, and `eraser` to upstream-shaped symbolic SVG paths and should be judged against the fixed upstream diagnostics session rather than any fresh active-window capture.
 - The latest retained pass adjusted:
   - tighter top, options, dock, and footer heights,
   - narrower side gutter padding around the main content,

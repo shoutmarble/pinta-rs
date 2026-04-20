@@ -105,7 +105,9 @@ fn tool_button<'a, Message: Clone + 'a>(
 fn tool_icon_size(kind: IconKind) -> f32 {
     match kind {
         IconKind::Pan => 28.0,
+        IconKind::Eraser => 24.0,
         IconKind::PaintBucket => 24.0,
+        IconKind::EllipseSelect => 24.0,
         _ => 22.0,
     }
 }

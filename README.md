@@ -9,11 +9,11 @@
 - The mock app reproduces the main Pinta shell, toolbox, canvas scene, layers/history pads, and status bar.
 - The current screenshot in this README is generated locally from the running mock using `spectacle`.
 - The paired upstream workspace was instrumented with diagnostics and screenshot hooks so the Rust mock can be compared against a real Pinta build instead of guessing from static screenshots.
-- Version `0.1.6` is the current workspace release snapshot, published through GitHub Releases rather than checked-in release artifacts.
+- Version `0.1.7` is the current workspace release snapshot, published through GitHub Releases rather than checked-in release artifacts.
 
-## Release 0.1.6
+## Release 0.1.7
 
-- Git tag: `0.1.6`
+- Git tag: `0.1.7`
 - Release distribution: GitHub Releases for this repository
 - Resume notes for future LLM sessions: `VIBE_NOTES.md`
 
