@@ -5,6 +5,8 @@ use iced::widget::canvas::{Canvas, Frame, Geometry, Path, Program, Stroke};
 use iced::{Element, Event, Length, Point, Rectangle, Renderer, Size, Theme};
 use pinta_theme::PintaTheme;
 
+use crate::widgets::icon::IconKind;
+
 #[derive(Debug, Clone)]
 pub struct ViewportState {
     pub viewport_size: (u32, u32),
@@ -18,7 +20,7 @@ impl Default for ViewportState {
     fn default() -> Self {
         Self {
             viewport_size: (800, 600),
-            zoom: 1.0,
+            zoom: 0.86,
             pan: DVec2::ZERO,
             hovered_image_pos: None,
             checker_size: 12.0,
@@ -27,19 +29,24 @@ impl Default for ViewportState {
 }
 
 impl ViewportState {
+    pub fn surface_size(&self) -> Size {
+        Size::new(
+            self.viewport_size.0 as f32 * self.zoom,
+            self.viewport_size.1 as f32 * self.zoom,
+        )
+    }
+
     pub fn image_to_screen(&self, image: DVec2) -> DVec2 {
-        image * self.zoom as f64 + self.pan
+        image * self.zoom as f64
     }
 
     pub fn screen_to_image(&self, screen: DVec2) -> DVec2 {
-        (screen - self.pan) / self.zoom as f64
+        screen / self.zoom as f64
     }
 
-    pub fn zoom_about_screen_point(&mut self, cursor: DVec2, next_zoom: f32) {
-        let image_before = self.screen_to_image(cursor);
+    pub fn zoom_about_screen_point(&mut self, _cursor: DVec2, next_zoom: f32) {
         self.zoom = next_zoom.max(0.05);
-        let screen_after = self.image_to_screen(image_before);
-        self.pan += cursor - screen_after;
+        self.pan = DVec2::ZERO;
     }
 }
 
@@ -55,17 +62,21 @@ pub enum CanvasAction {
 pub struct CanvasViewport {
     pub theme: PintaTheme,
     pub state: ViewportState,
+    pub active_tool: IconKind,
+    pub scripted_effect: bool,
 }
 
 impl CanvasViewport {
-    pub fn new(theme: PintaTheme, state: ViewportState) -> Self {
-        Self { theme, state }
+    pub fn new(theme: PintaTheme, state: ViewportState, active_tool: IconKind, scripted_effect: bool) -> Self {
+        Self { theme, state, active_tool, scripted_effect }
     }
 
     pub fn view(self) -> Element<'static, CanvasAction> {
         Canvas::new(ViewportProgram {
             theme: self.theme,
             state: self.state,
+            active_tool: self.active_tool,
+            scripted_effect: self.scripted_effect,
         })
         .width(Length::Fill)
         .height(Length::Fill)
@@ -77,6 +88,8 @@ impl CanvasViewport {
 struct ViewportProgram {
     theme: PintaTheme,
     state: ViewportState,
+    active_tool: IconKind,
+    scripted_effect: bool,
 }
 
 impl Program<CanvasAction> for ViewportProgram {
@@ -91,35 +104,8 @@ impl Program<CanvasAction> for ViewportProgram {
         _cursor: mouse::Cursor,
     ) -> Vec<Geometry> {
         let mut frame = Frame::new(renderer, bounds.size());
-        frame.fill_rectangle(
-            Point::ORIGIN,
-            bounds.size(),
-            self.theme.colors.canvas_surround_bg,
-        );
-
-        let horizontal_margin = bounds.width * 0.105;
-        let vertical_margin = bounds.height * 0.105;
-        let max_width = (bounds.width - horizontal_margin * 2.0).max(280.0);
-        let max_height = (bounds.height - vertical_margin * 2.0).max(220.0);
-        let page_width = max_width.min(max_height * (4.0 / 3.0)) * 0.90;
-        let page_height = page_width * 0.75;
-        let page_size = Size::new(page_width, page_height);
-        let page_x = (bounds.width - page_size.width) / 2.0;
-        let page_y = (bounds.height - page_size.height) / 2.0 + 10.0;
-        let px = |x: f32| page_x + page_size.width * (x / 800.0);
-        let py = |y: f32| page_y + page_size.height * (y / 600.0);
-        let scale = page_size.width / 800.0;
-
-        // Drop shadow (offset right and down)
-        let shadow_offset = 4.0;
-        let shadow_color = iced::Color::from_rgba8(0x00, 0x00, 0x00, 0.25);
-        let shadow = Path::rectangle(
-            Point::new(page_x + shadow_offset, page_y + shadow_offset),
-            page_size,
-        );
-        frame.fill(&shadow, shadow_color);
-
-        let page = Path::rectangle(Point::new(page_x, page_y), page_size);
+        let surface_bounds = centered_surface_rect(bounds.size(), self.state.surface_size());
+        let page = Path::rectangle(surface_bounds.position(), surface_bounds.size());
         frame.fill(&page, self.theme.colors.canvas_page_bg);
         frame.stroke(
             &page,
@@ -128,14 +114,22 @@ impl Program<CanvasAction> for ViewportProgram {
                 .with_color(self.theme.colors.border_strong),
         );
 
+        let px = |x: f32| {
+            surface_bounds.x + surface_bounds.width * (x / self.state.viewport_size.0 as f32)
+        };
+        let py = |y: f32| {
+            surface_bounds.y + surface_bounds.height * (y / self.state.viewport_size.1 as f32)
+        };
+        let scale = surface_bounds.width / self.state.viewport_size.0 as f32;
+
         let red_circle = Path::circle(Point::new(px(188.0), py(176.0)), 72.0 * scale);
         frame.fill(&red_circle, iced::Color::from_rgb8(0xE0, 0x48, 0x3D));
 
         let green_rect = Path::rectangle(
             Point::new(px(318.0), py(108.0)),
             Size::new(
-                page_size.width * (274.0 / 800.0),
-                page_size.height * (122.0 / 600.0),
+                bounds.width * (274.0 / self.state.viewport_size.0 as f32),
+                bounds.height * (122.0 / self.state.viewport_size.1 as f32),
             ),
         );
         frame.fill(&green_rect, iced::Color::from_rgb8(0x5A, 0x8D, 0x4B));
@@ -171,14 +165,9 @@ impl Program<CanvasAction> for ViewportProgram {
                 .with_color(iced::Color::from_rgb8(0x3F, 0x66, 0xB6)),
         );
 
-        let zoom_bar = Path::rectangle(
-            Point::new(
-                page_x + page_size.width - 94.0,
-                page_y + page_size.height + 16.0,
-            ),
-            Size::new((self.state.zoom * 34.0).clamp(24.0, 86.0), 3.0),
-        );
-        frame.fill(&zoom_bar, self.theme.colors.selected_bg);
+        if self.scripted_effect {
+            draw_scripted_effect(&mut frame, self.active_tool, &self.state, surface_bounds);
+        }
 
         vec![frame.into_geometry()]
     }
@@ -190,23 +179,46 @@ impl Program<CanvasAction> for ViewportProgram {
         bounds: Rectangle,
         cursor: mouse::Cursor,
     ) -> Option<Action<CanvasAction>> {
+        let surface_bounds = centered_surface_rect(bounds.size(), self.state.surface_size());
+
         match event {
             Event::Mouse(mouse::Event::CursorMoved { position }) => {
-                let local = DVec2::new(position.x as f64, position.y as f64);
-                Some(Action::publish(CanvasAction::CursorMoved(local)).and_capture())
+                let local = DVec2::new(
+                    position.x as f64 - surface_bounds.x as f64,
+                    position.y as f64 - surface_bounds.y as f64,
+                );
+                if surface_bounds.contains(Point::new(position.x, position.y)) {
+                    Some(Action::publish(CanvasAction::CursorMoved(local)).and_capture())
+                } else {
+                    None
+                }
             }
             Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
                 if let Some(position) = cursor.position_in(bounds) {
-                    let local = DVec2::new(position.x as f64, position.y as f64);
-                    Some(Action::publish(CanvasAction::Pressed(local)).and_capture())
+                    if surface_bounds.contains(position) {
+                        let local = DVec2::new(
+                            position.x as f64 - surface_bounds.x as f64,
+                            position.y as f64 - surface_bounds.y as f64,
+                        );
+                        Some(Action::publish(CanvasAction::Pressed(local)).and_capture())
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }
             }
             Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
                 if let Some(position) = cursor.position_in(bounds) {
-                    let local = DVec2::new(position.x as f64, position.y as f64);
-                    Some(Action::publish(CanvasAction::Released(local)).and_capture())
+                    if surface_bounds.contains(position) {
+                        let local = DVec2::new(
+                            position.x as f64 - surface_bounds.x as f64,
+                            position.y as f64 - surface_bounds.y as f64,
+                        );
+                        Some(Action::publish(CanvasAction::Released(local)).and_capture())
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }
@@ -218,19 +230,153 @@ impl Program<CanvasAction> for ViewportProgram {
                 };
 
                 if let Some(position) = cursor.position_in(bounds) {
-                    let local = DVec2::new(position.x as f64, position.y as f64);
-                    Some(
-                        Action::publish(CanvasAction::Scrolled {
-                            delta_lines: lines,
-                            cursor: local,
-                        })
-                        .and_capture(),
-                    )
+                    if surface_bounds.contains(position) {
+                        let local = DVec2::new(
+                            position.x as f64 - surface_bounds.x as f64,
+                            position.y as f64 - surface_bounds.y as f64,
+                        );
+                        Some(
+                            Action::publish(CanvasAction::Scrolled {
+                                delta_lines: lines,
+                                cursor: local,
+                            })
+                            .and_capture(),
+                        )
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }
             }
             _ => None,
         }
+    }
+}
+
+fn draw_scripted_effect(frame: &mut Frame, active_tool: IconKind, state: &ViewportState, surface_bounds: Rectangle) {
+    let px = |x: f32| surface_bounds.x + surface_bounds.width * (x / state.viewport_size.0 as f32);
+    let py = |y: f32| surface_bounds.y + surface_bounds.height * (y / state.viewport_size.1 as f32);
+    let scale = surface_bounds.width / state.viewport_size.0 as f32;
+
+    match active_tool {
+        IconKind::MovePixels => {
+            let moved = Path::rectangle(Point::new(px(148.0), py(104.0)), Size::new(170.0 * scale, 120.0 * scale));
+            frame.fill(&moved, iced::Color::from_rgba8(0xE0, 0x48, 0x3D, 0.35));
+            let border = Path::rectangle(Point::new(px(148.0), py(104.0)), Size::new(170.0 * scale, 120.0 * scale));
+            frame.stroke(&border, Stroke::default().with_width(2.0).with_color(iced::Color::from_rgb8(0x20, 0x20, 0x20)));
+        }
+        IconKind::MoveSelection | IconKind::RectSelect | IconKind::EllipseSelect | IconKind::LassoSelect | IconKind::MagicWand => {
+            let selection = Path::rectangle(Point::new(px(120.0), py(90.0)), Size::new(240.0 * scale, 170.0 * scale));
+            frame.stroke(&selection, Stroke::default().with_width(2.0).with_color(iced::Color::from_rgb8(0x22, 0x22, 0x22)));
+        }
+        IconKind::Zoom => {
+            let zoom_focus = Path::rectangle(Point::new(px(165.0), py(125.0)), Size::new(330.0 * scale, 240.0 * scale));
+            frame.stroke(&zoom_focus, Stroke::default().with_width(3.0).with_color(iced::Color::from_rgb8(0x6B, 0x85, 0xD6)));
+        }
+        IconKind::Pan => {
+            let moved = Path::rectangle(Point::new(px(35.0), py(25.0)), Size::new(surface_bounds.width - 40.0 * scale, surface_bounds.height - 40.0 * scale));
+            frame.stroke(&moved, Stroke::default().with_width(1.5).with_color(iced::Color::from_rgb8(0xB9, 0xB9, 0xBF)));
+        }
+        IconKind::Paintbrush | IconKind::Pencil => {
+            let stroke = Path::new(|builder| {
+                builder.move_to(Point::new(px(92.0), py(478.0)));
+                builder.bezier_curve_to(Point::new(px(210.0), py(360.0)), Point::new(px(290.0), py(410.0)), Point::new(px(402.0), py(448.0)));
+                builder.bezier_curve_to(Point::new(px(520.0), py(490.0)), Point::new(px(560.0), py(428.0)), Point::new(px(652.0), py(372.0)));
+            });
+            frame.stroke(&stroke, Stroke::default().with_width((10.0 * scale).max(4.0)).with_color(iced::Color::from_rgb8(0xA4, 0x2B, 0x22)));
+        }
+        IconKind::Eraser => {
+            let erase = Path::rectangle(Point::new(px(300.0), py(170.0)), Size::new(180.0 * scale, 70.0 * scale));
+            frame.fill(&erase, iced::Color::from_rgb8(0xFF, 0xFF, 0xFF));
+        }
+        IconKind::PaintBucket => {
+            let fill = Path::rectangle(Point::new(px(16.0), py(16.0)), Size::new(250.0 * scale, 190.0 * scale));
+            frame.fill(&fill, iced::Color::from_rgba8(0xF7, 0xD2, 0x3A, 0.75));
+        }
+        IconKind::Gradient => {
+            let gradient = Path::rectangle(Point::new(px(80.0), py(90.0)), Size::new(560.0 * scale, 220.0 * scale));
+            frame.fill(&gradient, iced::Color::from_rgba8(0x5A, 0x8D, 0x4B, 0.4));
+        }
+        IconKind::ColorPicker => {
+            let marker = Path::circle(Point::new(px(185.0), py(175.0)), 10.0 * scale);
+            frame.stroke(&marker, Stroke::default().with_width(3.0).with_color(iced::Color::from_rgb8(0x22, 0x22, 0x22)));
+        }
+        IconKind::Text => {
+            let baseline = Path::line(Point::new(px(150.0), py(430.0)), Point::new(px(300.0), py(430.0)));
+            frame.stroke(&baseline, Stroke::default().with_width(1.5).with_color(iced::Color::from_rgb8(0x44, 0x44, 0x44)));
+            let glyph = Path::rectangle(Point::new(px(170.0), py(360.0)), Size::new(90.0 * scale, 50.0 * scale));
+            frame.stroke(&glyph, Stroke::default().with_width(2.0).with_color(iced::Color::from_rgb8(0x22, 0x22, 0x22)));
+        }
+        IconKind::LineCurve => {
+            let line = Path::line(Point::new(px(120.0), py(460.0)), Point::new(px(580.0), py(240.0)));
+            frame.stroke(&line, Stroke::default().with_width((6.0 * scale).max(3.0)).with_color(iced::Color::from_rgb8(0x28, 0x28, 0x2A)));
+        }
+        IconKind::Rectangle | IconKind::RoundedRectangle => {
+            let shape = Path::rectangle(Point::new(px(120.0), py(110.0)), Size::new(270.0 * scale, 170.0 * scale));
+            frame.stroke(&shape, Stroke::default().with_width((5.0 * scale).max(2.0)).with_color(iced::Color::from_rgb8(0x95, 0x42, 0x2A)));
+        }
+        IconKind::Ellipse => {
+            let ellipse = Path::new(|builder| {
+                let center_x = px(290.0);
+                let center_y = py(230.0);
+                let radius_x = 150.0 * scale;
+                let radius_y = 100.0 * scale;
+
+                builder.move_to(Point::new(center_x + radius_x, center_y));
+                builder.bezier_curve_to(
+                    Point::new(center_x + radius_x, center_y - radius_y * 0.5523),
+                    Point::new(center_x + radius_x * 0.5523, center_y - radius_y),
+                    Point::new(center_x, center_y - radius_y),
+                );
+                builder.bezier_curve_to(
+                    Point::new(center_x - radius_x * 0.5523, center_y - radius_y),
+                    Point::new(center_x - radius_x, center_y - radius_y * 0.5523),
+                    Point::new(center_x - radius_x, center_y),
+                );
+                builder.bezier_curve_to(
+                    Point::new(center_x - radius_x, center_y + radius_y * 0.5523),
+                    Point::new(center_x - radius_x * 0.5523, center_y + radius_y),
+                    Point::new(center_x, center_y + radius_y),
+                );
+                builder.bezier_curve_to(
+                    Point::new(center_x + radius_x * 0.5523, center_y + radius_y),
+                    Point::new(center_x + radius_x, center_y + radius_y * 0.5523),
+                    Point::new(center_x + radius_x, center_y),
+                );
+                builder.close();
+            });
+            frame.stroke(&ellipse, Stroke::default().with_width((5.0 * scale).max(2.0)).with_color(iced::Color::from_rgb8(0x95, 0x42, 0x2A)));
+        }
+        IconKind::Freeform => {
+            let freeform = Path::new(|builder| {
+                builder.move_to(Point::new(px(130.0), py(320.0)));
+                builder.bezier_curve_to(Point::new(px(220.0), py(180.0)), Point::new(px(360.0), py(190.0)), Point::new(px(420.0), py(250.0)));
+                builder.bezier_curve_to(Point::new(px(470.0), py(310.0)), Point::new(px(430.0), py(420.0)), Point::new(px(250.0), py(430.0)));
+                builder.close();
+            });
+            frame.stroke(&freeform, Stroke::default().with_width((5.0 * scale).max(2.0)).with_color(iced::Color::from_rgb8(0x95, 0x42, 0x2A)));
+        }
+        IconKind::CloneStamp => {
+            let patch = Path::rectangle(Point::new(px(470.0), py(130.0)), Size::new(110.0 * scale, 80.0 * scale));
+            frame.fill(&patch, iced::Color::from_rgba8(0xE0, 0x48, 0x3D, 0.45));
+        }
+        IconKind::Recolor => {
+            let recolor = Path::rectangle(Point::new(px(320.0), py(108.0)), Size::new(274.0 * scale, 122.0 * scale));
+            frame.fill(&recolor, iced::Color::from_rgba8(0x7C, 0x61, 0xD9, 0.5));
+        }
+        _ => {}
+    }
+}
+
+fn centered_surface_rect(bounds: Size, surface: Size) -> Rectangle {
+    let x = ((bounds.width - surface.width) / 2.0).max(0.0);
+    let y = ((bounds.height - surface.height) / 2.0).max(0.0);
+
+    Rectangle {
+        x,
+        y,
+        width: surface.width.min(bounds.width),
+        height: surface.height.min(bounds.height),
     }
 }

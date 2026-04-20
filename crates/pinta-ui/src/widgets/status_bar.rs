@@ -1,4 +1,4 @@
-use iced::widget::{container, row, text};
+use iced::widget::{column, container, row, text};
 use iced::{Background, Border, Element, Length};
 use pinta_theme::PintaTheme;
 
@@ -12,8 +12,8 @@ pub fn view<'a, Message: 'a>(
     zoom_text: String,
 ) -> Element<'a, Message> {
     let palette_lead = row![
-        color_stack(theme),
-        blank_chip(theme, 82.0),
+        color_stack_panel(theme),
+        blank_chip(theme, 70.0),
         swatch(theme, [0x00, 0x00, 0x00], 18.0, 18.0),
         swatch_row(
             theme,
@@ -21,7 +21,7 @@ pub fn view<'a, Message: 'a>(
                 [0x6D, 0x6D, 0x6D],
                 [0x8B, 0x8B, 0x8B],
                 [0xB5, 0xB5, 0xB5],
-                [0xD6, 0xD6, 0xD6]
+                [0xD6, 0xD6, 0xD6],
             ],
             14.0,
             18.0,
@@ -49,44 +49,37 @@ pub fn view<'a, Message: 'a>(
     .spacing(theme.spacing.xs)
     .align_y(iced::Alignment::Center);
 
-    let zoom_box = container(
-        text(zoom_text)
-            .size(theme.typography.caption)
-            .color(theme.colors.text_primary),
-    )
-    .width(Length::Fixed(theme.sizing.zoom_control_width as f32))
-    .padding([theme.spacing.xs, theme.spacing.md])
-    .style(move |_| {
-        container::Style::default()
-            .background(Background::Color(theme.colors.panel_bg))
-            .border(
-                Border::default()
-                    .rounded(theme.radii.md)
-                    .width(1)
-                    .color(theme.colors.border_subtle),
-            )
-    });
-
     let zoom_controls = row![
-        flat_control(theme, "-", 22.0),
-        zoom_box,
-        flat_chevron(theme),
-        flat_control(theme, "+", 22.0),
+        flat_control(theme, IconKind::ValueDecrease, 24.0),
+        zoom_display(theme, zoom_text),
+        flat_control(theme, IconKind::ValueIncrease, 24.0),
     ]
-    .spacing(theme.spacing.xs)
+    .spacing(0)
     .align_y(iced::Alignment::Center);
 
-    let content = row![
+    let mut content = row![
         container(palette_lead).width(Length::Fixed(theme.sizing.palette_lead_width as f32)),
         icon::view(IconKind::CursorArrow, 15.0, 15.0, theme.colors.text_muted),
         metric_text(theme, cursor_text),
-        icon::view(IconKind::RectSelect, 14.0, 14.0, theme.colors.text_muted),
-        metric_text(theme, selection_text),
-        metric_text(theme, image_text),
-        container(zoom_controls).width(Length::Shrink),
     ]
-    .spacing(theme.spacing.md)
-    .padding([theme.spacing.xs, theme.spacing.md]);
+    .spacing(theme.spacing.sm)
+    .padding([theme.spacing.xs, theme.spacing.sm])
+    .align_y(iced::Alignment::Center);
+
+    if selection_text != "0, 0, 0, 0" {
+        content = content
+            .push(icon::view(
+                IconKind::RectSelect,
+                14.0,
+                14.0,
+                theme.colors.text_muted,
+            ))
+            .push(metric_text(theme, selection_text));
+    }
+
+    content = content
+        .push(metric_text(theme, image_text))
+        .push(container(zoom_controls).width(Length::Shrink));
 
     container(content)
         .width(Length::Fill)
@@ -102,17 +95,47 @@ pub fn view<'a, Message: 'a>(
 fn metric_text<'a, Message: 'a>(theme: &'a PintaTheme, value: String) -> Element<'a, Message> {
     text(value)
         .size(theme.typography.caption)
+        .font(theme.typography.ui_regular())
         .color(theme.colors.text_primary)
         .into()
 }
 
-fn color_stack<'a, Message: 'a>(theme: &'a PintaTheme) -> Element<'a, Message> {
-    let back = swatch(theme, [0xFF, 0xFF, 0xFF], 30.0, 30.0);
-    let front = swatch(theme, [0x00, 0x00, 0x00], 30.0, 30.0);
+fn color_stack_panel<'a, Message: 'a>(theme: &'a PintaTheme) -> Element<'a, Message> {
+    let back = swatch(theme, [0xFF, 0xFF, 0xFF], 22.0, 22.0);
+    let front = swatch(theme, [0x00, 0x00, 0x00], 22.0, 22.0);
 
-    row![front, back]
-        .spacing(-12.0)
-        .align_y(iced::Alignment::End)
+    let stacked = container(
+        column![
+            row![container(back).width(Length::Fixed(28.0))],
+            row![container(front).width(Length::Fixed(28.0))],
+        ]
+        .spacing(-10.0),
+    )
+    .width(Length::Fixed(32.0))
+    .height(Length::Fixed(28.0));
+
+    row![
+        stacked,
+        column![
+            color_action_button(theme, IconKind::ColorSwap),
+            color_action_button(theme, IconKind::ColorReset),
+        ]
+        .spacing(1.0),
+    ]
+    .spacing(theme.spacing.xs)
+    .align_y(iced::Alignment::Center)
+    .into()
+}
+
+fn color_action_button<'a, Message: 'a>(
+    theme: &'a PintaTheme,
+    icon_kind: IconKind,
+) -> Element<'a, Message> {
+    container(icon::view(icon_kind, 10.0, 10.0, theme.colors.text_muted))
+        .width(Length::Fixed(16.0))
+        .height(Length::Fixed(11.0))
+        .align_x(iced::alignment::Horizontal::Center)
+        .align_y(iced::alignment::Vertical::Center)
         .into()
 }
 
@@ -141,28 +164,49 @@ fn swatch_row<'a, Message: 'a>(
 
 fn flat_control<'a, Message: 'a>(
     theme: &'a PintaTheme,
-    label: &'a str,
+    icon_kind: IconKind,
     width: f32,
 ) -> Element<'a, Message> {
-    container(
-        text(label)
-            .size(theme.typography.caption)
-            .color(theme.colors.text_primary),
-    )
+    container(icon::view(icon_kind, 12.0, 12.0, theme.colors.text_primary))
     .width(Length::Fixed(width))
-    .center(Length::Shrink)
+    .height(Length::Fixed(24.0))
+    .center(Length::Fill)
     .into()
 }
 
-fn flat_chevron<'a, Message: 'a>(theme: &'a PintaTheme) -> Element<'a, Message> {
-    container(icon::view(
-        IconKind::ChevronDown,
-        11.0,
-        11.0,
-        theme.colors.text_primary,
-    ))
-    .width(Length::Fixed(18.0))
-    .center(Length::Shrink)
+fn zoom_display<'a, Message: 'a>(
+    theme: &'a PintaTheme,
+    zoom_text: String,
+) -> Element<'a, Message> {
+    container(
+        row![
+            container(
+                text(zoom_text)
+                    .size(theme.typography.caption)
+                    .font(theme.typography.ui_regular())
+                    .color(theme.colors.text_primary),
+            )
+            .width(Length::Fill)
+            .align_x(iced::alignment::Horizontal::Center),
+            container(icon::view(
+                IconKind::ChevronDown,
+                10.0,
+                10.0,
+                theme.colors.text_primary,
+            ))
+            .width(Length::Fixed(14.0))
+            .align_x(iced::alignment::Horizontal::Center),
+        ]
+        .align_y(iced::Alignment::Center),
+    )
+    .width(Length::Fixed(theme.sizing.zoom_control_width as f32))
+    .height(Length::Fixed(24.0))
+    .padding([theme.spacing.xs, theme.spacing.xs])
+    .style(move |_| {
+        container::Style::default()
+            .background(Background::Color(theme.colors.panel_bg))
+            .border(Border::default().width(1).color(theme.colors.border_subtle))
+    })
     .into()
 }
 

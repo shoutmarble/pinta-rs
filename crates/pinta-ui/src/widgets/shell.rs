@@ -67,6 +67,7 @@ pub fn title_bar<'a, Message: 'a>(
             container(
                 text(format!("{} - Pinta", model.document_title))
                     .size(theme.typography.toolbar)
+                    .font(theme.typography.ui_medium())
                     .color(theme.colors.text_primary),
             )
             .width(Length::FillPortion(4))
@@ -95,14 +96,17 @@ pub fn tool_options_bar<'a, Message: 'a>(
         row![
             text(model.tool_label)
                 .size(theme.typography.toolbar)
+                .font(theme.typography.ui_regular())
                 .color(theme.colors.text_primary),
             toolbar_icon(theme, model.tool_icon, false),
             text(model.value_label)
                 .size(theme.typography.toolbar)
+                .font(theme.typography.ui_regular())
                 .color(theme.colors.text_primary),
             segmented_value(theme, model.value),
             text(model.mode_label)
                 .size(theme.typography.toolbar)
+                .font(theme.typography.ui_regular())
                 .color(theme.colors.text_primary),
             dropdown_chip(theme, model.mode_value, model.mode_width),
             icon_dropdown_chip(theme, model.shape_icon, model.shape_width),
@@ -123,9 +127,10 @@ pub fn layer_row<'a, Message: 'a>(
 ) -> Element<'a, Message> {
     container(
         row![
-            icon::view(IconKind::Eye, 18.0, 18.0, theme.colors.text_muted),
+            icon::view(IconKind::ViewReveal, 18.0, 18.0, theme.colors.text_muted),
             text(label)
                 .size(theme.typography.body)
+                .font(theme.typography.ui_regular())
                 .color(theme.colors.text_primary),
             container(icon::view(
                 IconKind::ThumbnailSample,
@@ -169,6 +174,7 @@ pub fn history_row<'a, Message: 'a>(
             icon::view(icon_kind, 14.0, 14.0, theme.colors.text_muted),
             text(label)
                 .size(theme.typography.caption)
+                .font(theme.typography.ui_regular())
                 .color(theme.colors.text_primary),
         ]
         .spacing(theme.spacing.md)
@@ -225,6 +231,7 @@ fn segmented_value<'a, Message: 'a>(theme: &'a PintaTheme, value: u32) -> Elemen
             container(
                 text(value.to_string())
                     .size(theme.typography.toolbar)
+                    .font(theme.typography.ui_regular())
                     .color(theme.colors.text_primary),
             )
             .width(Length::FillPortion(2))
@@ -254,6 +261,7 @@ fn stepper_button<'a, Message: 'a>(theme: &'a PintaTheme, label: &'a str) -> Ele
     container(
         text(label)
             .size(theme.typography.toolbar)
+            .font(theme.typography.ui_medium())
             .color(theme.colors.text_primary),
     )
     .width(Length::Fixed(26.0))
@@ -274,6 +282,7 @@ fn dropdown_chip<'a, Message: 'a>(
         row![
             text(label)
                 .size(theme.typography.toolbar)
+                .font(theme.typography.ui_regular())
                 .color(theme.colors.text_primary),
             icon::view(IconKind::ChevronDown, 12.0, 12.0, theme.colors.text_primary),
         ]

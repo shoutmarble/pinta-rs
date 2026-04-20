@@ -1,3 +1,8 @@
+use iced::{
+    Font,
+    font::{Family, Weight},
+};
+
 #[derive(Debug, Clone)]
 pub struct Typography {
     pub title: f32,
@@ -10,11 +15,29 @@ pub struct Typography {
 impl Default for Typography {
     fn default() -> Self {
         Self {
-            title: 16.0,
-            panel_title: 13.0,
-            body: 14.0,
-            caption: 12.0,
-            toolbar: 13.0,
+            title: 13.0,
+            panel_title: 12.0,
+            body: 12.0,
+            caption: 11.0,
+            toolbar: 12.0,
+        }
+    }
+}
+
+impl Typography {
+    pub fn ui_regular(&self) -> Font {
+        Font {
+            family: Family::Name("Adwaita Sans"),
+            weight: Weight::Normal,
+            ..Font::DEFAULT
+        }
+    }
+
+    pub fn ui_medium(&self) -> Font {
+        Font {
+            family: Family::Name("Adwaita Sans"),
+            weight: Weight::Medium,
+            ..Font::DEFAULT
         }
     }
 }

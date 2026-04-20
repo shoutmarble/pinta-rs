@@ -3,6 +3,11 @@ use iced::widget::{
     svg,
 };
 use iced::{Color, Element, Length, Point, Rectangle, Renderer, Size, Theme};
+use std::collections::HashMap;
+use std::env;
+use std::fs;
+use std::path::PathBuf;
+use std::sync::OnceLock;
 
 #[derive(Debug, Clone, Copy)]
 pub enum IconKind {
@@ -44,9 +49,13 @@ pub enum IconKind {
     Scissors,
     Clipboard,
     ImageLandscape,
+    ImageGeneric,
     Adjustments,
     Effects,
     Menu,
+    ValueDecrease,
+    ValueIncrease,
+    ViewReveal,
     ChevronDown,
     ChevronUp,
     WindowMinimize,
@@ -54,6 +63,9 @@ pub enum IconKind {
     WindowClose,
     Undo,
     Redo,
+    ColorSwap,
+    ColorReset,
+    HistoryList,
 }
 
 pub fn view<'a, Message: 'a>(
@@ -76,77 +88,18 @@ pub fn view<'a, Message: 'a>(
 }
 
 fn svg_handle(kind: IconKind, color: Color) -> Option<svg::Handle> {
+    if let Some(markup) = upstream_svg_markup(kind, color) {
+        return Some(svg::Handle::from_memory(markup.into_bytes()));
+    }
+
+    if let Some(markup) = standard_svg_markup(kind, color) {
+        return Some(svg::Handle::from_memory(markup.into_bytes()));
+    }
+
     let stroke = svg_color(color);
-    let fill = svg_color(color);
     let markup = match kind {
-        IconKind::CursorArrow => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'><path fill='{fill}' stroke='none' d='M5 4.5 5 18l3.8-3 2.7 4.5 2.2-1.2-2.8-4.6H16z'/></svg>"#
-        ),
-        IconKind::MovePixels => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path d='M12 4v16M4 12h16'/><path fill='{fill}' stroke='none' d='M12 2l2.5 4h-5zM12 22l-2.5-4h5zM2 12l4-2.5v5zM22 12l-4 2.5v-5z'/></svg>"#
-        ),
-        IconKind::MoveSelection => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='6' y='6' width='12' height='12' rx='1'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3'/></svg>"#
-        ),
-        IconKind::Zoom => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='10' cy='10' r='5.5'/><path d='M14.5 14.5 20 20'/></svg>"#
-        ),
-        IconKind::Pan => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path fill='{fill}' d='M18 24h-6.55c-1.08 0-2.14-.45-2.89-1.23l-7.3-7.61 2.07-1.83c.62-.55 1.53-.66 2.26-.27L8 14.34V4.79c0-1.38 1.12-2.5 2.5-2.5.17 0 .34.02.51.05.09-1.3 1.17-2.33 2.49-2.33.86 0 1.61.43 2.06 1.09.29-.12.61-.18.94-.18 1.38 0 2.5 1.12 2.5 2.5v.28c.16-.03.33-.05.5-.05 1.38 0 2.5 1.12 2.5 2.5V20c0 2.21-1.79 4-4 4zM4.14 15.28l5.86 6.1c.38.39.9.62 1.44.62H18c1.1 0 2-.9 2-2V6.15c0-.28-.22-.5-.5-.5s-.5.22-.5.5V12h-2V3.42c0-.28-.22-.5-.5-.5s-.5.22-.5.5V12h-2V2.51c0-.28-.22-.5-.5-.5s-.5.22-.5.5V12h-2V4.79c0-.28-.22-.5-.5-.5s-.5.23-.5.5v12.87l-5.35-2.83-.51.45z'/></svg>"#
-        ),
-        IconKind::RectSelect => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'><rect x='5' y='5' width='14' height='14' stroke-dasharray='3 3'/></svg>"#
-        ),
-        IconKind::EllipseSelect => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.3' stroke-dasharray='3.1 3.1'><circle cx='12' cy='12' r='7.7'/></svg>"#
-        ),
-        IconKind::LassoSelect => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 8c1.5-2.7 8.8-3.7 11.3-.9 2.2 2.4 1.4 6.2-1.6 8-2.3 1.4-5.8 1.8-8 .8-3.6-1.7-3.5-5.3-1.7-7.9Z'/></svg>"#
-        ),
-        IconKind::MagicWand => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 18 14 10'/><path d='M4.5 19.5 7 22'/><path d='M15 4v4M13 6h4M17.5 8.5v2M16.5 9.5h2'/></svg>"#
-        ),
-        IconKind::Paintbrush => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 18c1.6 0 2.6-1 2.6-2.5 0-.7.3-1.3.8-1.8l7.9-7.9 2.9 2.9-7.9 7.9c-.5.5-1.1.8-1.8.8H9.9c-.9 0-1.8.4-2.4 1.1L6 20'/><path fill='{fill}' stroke='none' d='M17.2 4.8 19.3 2.7a1 1 0 0 1 1.4 0l.6.6a1 1 0 0 1 0 1.4l-2.1 2.1z'/></svg>"#
-        ),
-        IconKind::Pencil => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 19 17.5 6.5l2 2L7 21H5z'/><path fill='{fill}' stroke='none' d='M18.2 5.8 20.3 3.7a1 1 0 0 1 1.4 0l.6.6a1 1 0 0 1 0 1.4l-2.1 2.1z'/></svg>"#
-        ),
-        IconKind::Eraser => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path fill='{fill}' d='M15.8698 2.66878L20.8384 7.6373C21.717 8.51598 21.717 9.9406 20.8384 10.8193L12.1566 19.4998L18.2544 19.5C18.6341 19.5 18.9479 19.7821 18.9976 20.1482L19.0044 20.25C19.0044 20.6297 18.7223 20.9435 18.3562 20.9931L18.2544 21L9.84443 21.0012C9.22822 21.0348 8.60082 20.8163 8.1301 20.3456L3.16157 15.377C2.28289 14.4984 2.28289 13.0737 3.16157 12.1951L12.6879 2.66878C13.5665 1.7901 14.9912 1.7901 15.8698 2.66878ZM11.6976 17.7583L5.7429 11.8035L4.23657 13.2701C3.94368 13.5629 3.94368 14.0378 4.23657 14.3307L9.18233 19.2763C9.4798 19.5646 9.95462 19.5571 10.2429 19.2596L11.6976 17.7583Z'/></svg>"#
-        ),
-        IconKind::PaintBucket => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path fill='{fill}' d='M5.7 11.2 12.3 4.6l5.2 5.2-6.6 6.6Z'/><path d='M7.9 13.4h8.1'/><path fill='{fill}' stroke='none' d='M18.7 10.9c1.3 1.6 1.3 2.9 0 4.5-1.1-1.6-1.1-2.9 0-4.5Z'/><path d='M4.1 19.2h15.8' stroke-width='2.3'/></svg>"#
-        ),
-        IconKind::Gradient => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path fill='{fill}' d='M11 9h2v2h-2V9zm-2 2h2v2H9v-2zm4 0h2v2h-2v-2zm2-2h2v2h-2V9zM7 9h2v2H7V9zm12-6H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 18H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm2-7h-2v2h2v2h-2v-2h-2v2h-2v-2h-2v2H9v-2H7v2H5v-2h2v-2H5V5h14v6z'/></svg>"#
-        ),
-        IconKind::ColorPicker => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 17 16 8'/><circle cx='18' cy='6' r='1.7' fill='{fill}' stroke='none'/></svg>"#
-        ),
-        IconKind::Text => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.2' stroke-linecap='round'><path d='M7 6h10M12 6v12'/></svg>"#
-        ),
-        IconKind::LineCurve => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 18 10 14'/><path d='M10 14c2-5 6-5 9 1'/></svg>"#
-        ),
-        IconKind::Rectangle => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2'><rect x='5' y='7' width='14' height='10'/></svg>"#
-        ),
-        IconKind::RoundedRectangle => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2'><rect x='5' y='7' width='14' height='10' rx='3'/></svg>"#
-        ),
-        IconKind::Ellipse => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2'><circle cx='12' cy='12' r='7'/></svg>"#
-        ),
-        IconKind::Freeform => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 14c-.8-5 5-8 10-6 3 1.2 4 5 1.8 8-1.8 2.4-6.3 3.4-9 2.1C7.1 17 6.2 15.7 6 14Z'/></svg>"#
-        ),
-        IconKind::CloneStamp => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='8' y='11' width='8' height='6' rx='1.5'/><path d='M12 11V5M9 5h6M9.5 8h5'/></svg>"#
-        ),
-        IconKind::Recolor => format!(
-            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 17 15 9'/><circle cx='16.4' cy='7.6' r='1.4'/><path fill='{fill}' stroke='none' d='M18 13c1.4 1.7 1.4 3.2 0 5-1.4-1.8-1.4-3.3 0-5Z'/></svg>"#
+        IconKind::ColorReset => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6.5 6.5h5.5v5.5H6.5z'/><path d='M12 12h5.5v5.5H12z'/></svg>"#
         ),
         IconKind::ChevronDown => format!(
             r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m7 9 5 6 5-6'/></svg>"#
@@ -155,6 +108,244 @@ fn svg_handle(kind: IconKind, color: Color) -> Option<svg::Handle> {
     };
 
     Some(svg::Handle::from_memory(markup.into_bytes()))
+}
+
+fn upstream_svg_markup(kind: IconKind, color: Color) -> Option<String> {
+    let source = match kind {
+        IconKind::CursorArrow => include_str!("../../assets/upstream-icons/actions/ui-cursor-location-symbolic.svg"),
+        IconKind::MovePixels => include_str!("../../assets/upstream-icons/actions/tool-move-cursor-symbolic.svg"),
+        IconKind::MoveSelection => {
+            include_str!("../../assets/upstream-icons/actions/tool-move-selection-symbolic.svg")
+        }
+        IconKind::Zoom => include_str!("../../assets/upstream-icons/actions/tool-zoom-symbolic.svg"),
+        IconKind::Pan => include_str!("../../assets/upstream-icons/actions/tool-pan-symbolic.svg"),
+        IconKind::RectSelect => {
+            include_str!("../../assets/upstream-icons/actions/tool-select-rectangle-symbolic.svg")
+        }
+        IconKind::EllipseSelect => {
+            include_str!("../../assets/upstream-icons/actions/tool-select-ellipse-symbolic.svg")
+        }
+        IconKind::LassoSelect => {
+            include_str!("../../assets/upstream-icons/actions/tool-select-lasso-symbolic.svg")
+        }
+        IconKind::MagicWand => {
+            include_str!("../../assets/upstream-icons/actions/tool-select-magicwand-symbolic.svg")
+        }
+        IconKind::Paintbrush => {
+            include_str!("../../assets/upstream-icons/actions/tool-paintbrush-symbolic.svg")
+        }
+        IconKind::Pencil => include_str!("../../assets/upstream-icons/actions/tool-pencil-symbolic.svg"),
+        IconKind::Eraser => include_str!("../../assets/upstream-icons/actions/tool-eraser-symbolic.svg"),
+        IconKind::PaintBucket => {
+            include_str!("../../assets/upstream-icons/actions/tool-paintbucket-symbolic.svg")
+        }
+        IconKind::Gradient => {
+            include_str!("../../assets/upstream-icons/actions/tool-gradient-symbolic.svg")
+        }
+        IconKind::ColorPicker => {
+            include_str!("../../assets/upstream-icons/actions/tool-colorpicker-symbolic.svg")
+        }
+        IconKind::Text => include_str!("../../assets/upstream-icons/actions/tool-text-symbolic.svg"),
+        IconKind::LineCurve => include_str!("../../assets/upstream-icons/actions/tool-line-symbolic.svg"),
+        IconKind::Rectangle => {
+            include_str!("../../assets/upstream-icons/actions/tool-rectangle-symbolic.svg")
+        }
+        IconKind::RoundedRectangle => {
+            include_str!("../../assets/upstream-icons/actions/tool-rectangle-rounded-symbolic.svg")
+        }
+        IconKind::Ellipse => include_str!("../../assets/upstream-icons/actions/tool-ellipse-symbolic.svg"),
+        IconKind::Freeform => {
+            include_str!("../../assets/upstream-icons/actions/tool-freeformshape-symbolic.svg")
+        }
+        IconKind::CloneStamp => {
+            include_str!("../../assets/upstream-icons/actions/tool-clonestamp-symbolic.svg")
+        }
+        IconKind::Recolor => include_str!("../../assets/upstream-icons/actions/tool-recolor-symbolic.svg"),
+        IconKind::Add => include_str!("../../assets/upstream-icons/actions/layers-add-layer-symbolic.svg"),
+        IconKind::Duplicate => {
+            include_str!("../../assets/upstream-icons/actions/layers-duplicate-layer-symbolic.svg")
+        }
+        IconKind::Delete => {
+            include_str!("../../assets/upstream-icons/actions/layers-remove-layer-symbolic.svg")
+        }
+        IconKind::Merge => {
+            include_str!("../../assets/upstream-icons/actions/layers-merge-down-symbolic.svg")
+        }
+        IconKind::Adjustments => {
+            include_str!("../../assets/upstream-icons/actions/adjustments-default-symbolic.svg")
+        }
+        IconKind::Effects => {
+            include_str!("../../assets/upstream-icons/actions/effects-default-symbolic.svg")
+        }
+        IconKind::ImageLandscape => {
+            include_str!("../../assets/upstream-icons/actions/image-orientation-landscape-symbolic.svg")
+        }
+        IconKind::ColorSwap => {
+            include_str!("../../assets/upstream-icons/actions/edit-swap-vert-symbolic.svg")
+        }
+        IconKind::HistoryList => {
+            include_str!("../../assets/upstream-icons/actions/ui-historylist-symbolic.svg")
+        }
+        _ => return None,
+    };
+
+    Some(recolor_symbolic_svg(source, color))
+}
+
+fn standard_svg_markup(kind: IconKind, color: Color) -> Option<String> {
+    let name = match kind {
+        IconKind::DocumentNew => "document-new-symbolic.svg",
+        IconKind::OpenImage => "document-open-symbolic.svg",
+        IconKind::Save => "document-save-symbolic.svg",
+        IconKind::Undo => "edit-undo-symbolic.svg",
+        IconKind::Redo => "edit-redo-symbolic.svg",
+        IconKind::Scissors => "edit-cut-symbolic.svg",
+        IconKind::Clipboard => "edit-paste-symbolic.svg",
+        IconKind::Menu => "open-menu-symbolic.svg",
+        IconKind::WindowClose => "window-close-symbolic.svg",
+        IconKind::WindowMaximize => "window-maximize-symbolic.svg",
+        IconKind::WindowMinimize => "window-minimize-symbolic.svg",
+        IconKind::ValueDecrease => "value-decrease-symbolic.svg",
+        IconKind::ValueIncrease => "value-increase-symbolic.svg",
+        IconKind::MoveUp => "pan-up-symbolic.svg",
+        IconKind::MoveDown => "pan-down-symbolic.svg",
+        IconKind::ViewReveal => "view-reveal-symbolic.svg",
+        IconKind::ImageGeneric => "image-x-generic-symbolic.svg",
+        _ => return None,
+    };
+
+    let source = standard_icon_source(name).or_else(|| vendored_standard_icon_source(name))?;
+    Some(recolor_symbolic_svg(source, color))
+}
+
+fn standard_icon_source(name: &'static str) -> Option<&'static str> {
+    static SOURCES: OnceLock<HashMap<&'static str, Option<String>>> = OnceLock::new();
+
+    SOURCES
+        .get_or_init(|| {
+            STANDARD_ICON_FILENAMES
+                .iter()
+                .copied()
+                .map(|file_name| {
+                    (
+                        file_name,
+                        find_standard_icon_file(file_name)
+                            .and_then(|path| fs::read_to_string(path).ok()),
+                    )
+                })
+                .collect()
+        })
+        .get(name)
+        .and_then(|source| source.as_deref())
+}
+
+fn vendored_standard_icon_source(name: &'static str) -> Option<&'static str> {
+    match name {
+        "document-new-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/document-new-symbolic.svg")),
+        "document-open-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/document-open-symbolic.svg")),
+        "document-save-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/document-save-symbolic.svg")),
+        "edit-undo-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/edit-undo-symbolic.svg")),
+        "edit-redo-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/edit-redo-symbolic.svg")),
+        "edit-cut-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/edit-cut-symbolic.svg")),
+        "edit-paste-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/edit-paste-symbolic.svg")),
+        "open-menu-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/open-menu-symbolic.svg")),
+        "window-close-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/window-close-symbolic.svg")),
+        "window-maximize-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/window-maximize-symbolic.svg")),
+        "window-minimize-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/window-minimize-symbolic.svg")),
+        "value-decrease-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/value-decrease-symbolic.svg")),
+        "value-increase-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/value-increase-symbolic.svg")),
+        "pan-up-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/pan-up-symbolic.svg")),
+        "pan-down-symbolic.svg" => Some(include_str!("../../assets/standard-icons/actions/pan-down-symbolic.svg")),
+        _ => None,
+    }
+}
+
+const STANDARD_ICON_FILENAMES: &[&str] = &[
+    "document-new-symbolic.svg",
+    "document-open-symbolic.svg",
+    "document-save-symbolic.svg",
+    "edit-undo-symbolic.svg",
+    "edit-redo-symbolic.svg",
+    "edit-cut-symbolic.svg",
+    "edit-paste-symbolic.svg",
+    "open-menu-symbolic.svg",
+    "window-close-symbolic.svg",
+    "window-maximize-symbolic.svg",
+    "window-minimize-symbolic.svg",
+    "value-decrease-symbolic.svg",
+    "value-increase-symbolic.svg",
+    "view-reveal-symbolic.svg",
+    "image-x-generic-symbolic.svg",
+    "pan-up-symbolic.svg",
+    "pan-down-symbolic.svg",
+];
+
+fn find_standard_icon_file(name: &str) -> Option<PathBuf> {
+    let themes = ["Adwaita", "breeze-dark", "breeze", "hicolor", "HighContrast"];
+    let subdirs = [
+        "actions/24",
+        "actions/22",
+        "actions/16",
+        "symbolic/actions",
+        "scalable/actions",
+        "mimetypes/24",
+        "symbolic/mimetypes",
+        "scalable/mimetypes",
+        "status/24",
+        "symbolic/status",
+        "scalable/status",
+    ];
+
+    for root in icon_roots() {
+        for theme in themes {
+            for subdir in subdirs {
+                let candidate = root.join(theme).join(subdir).join(name);
+                if candidate.is_file() {
+                    return Some(candidate);
+                }
+            }
+        }
+    }
+
+    None
+}
+
+fn icon_roots() -> Vec<PathBuf> {
+    let mut roots = Vec::new();
+
+    if let Ok(home) = env::var("HOME") {
+        roots.push(PathBuf::from(home).join(".local/share/icons"));
+    }
+
+    if let Ok(data_home) = env::var("XDG_DATA_HOME") {
+        roots.push(PathBuf::from(data_home).join("icons"));
+    }
+
+    if let Ok(data_dirs) = env::var("XDG_DATA_DIRS") {
+        roots.extend(
+            data_dirs
+                .split(':')
+                .filter(|part| !part.is_empty())
+                .map(|part| PathBuf::from(part).join("icons")),
+        );
+    }
+
+    roots.push(PathBuf::from("/usr/local/share/icons"));
+    roots.push(PathBuf::from("/usr/share/icons"));
+    roots
+}
+
+fn recolor_symbolic_svg(svg: &str, color: Color) -> String {
+    let rgba = svg_color(color);
+
+    svg.replace("url(#gpa:foreground) rgb(0,0,0)", &rgba)
+        .replace("url(#gpa:foreground) rgb(0, 0, 0)", &rgba)
+        .replace("#bebebe", &rgba)
+        .replace("#BEBEBE", &rgba)
+        .replace("currentColor", &rgba)
+        .replace("#000000", &rgba)
+        .replace("rgb(0,0,0)", &rgba)
+        .replace("rgb(0, 0, 0)", &rgba)
 }
 
 fn svg_color(color: Color) -> String {
@@ -443,6 +634,15 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             frame.stroke(&eye, thin);
             frame.fill(&Path::circle(point(12.0, 12.0), size.width * 0.10), color);
         }
+        IconKind::ViewReveal => {
+            let eye = Path::new(|b| {
+                b.move_to(point(4.0, 12.0));
+                b.bezier_curve_to(point(8.0, 6.0), point(16.0, 6.0), point(20.0, 12.0));
+                b.bezier_curve_to(point(16.0, 18.0), point(8.0, 18.0), point(4.0, 12.0));
+            });
+            frame.stroke(&eye, thin);
+            frame.fill(&Path::circle(point(12.0, 12.0), size.width * 0.10), color);
+        }
         IconKind::ThumbnailSample => {
             frame.fill(
                 &Path::rectangle(point(2.0, 2.0), size_scale(size, 20.0, 20.0)),
@@ -539,6 +739,16 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             frame.stroke(&Path::line(point(11.0, 11.0), point(15.0, 15.0)), thin);
             frame.stroke(&Path::line(point(15.0, 15.0), point(19.0, 9.0)), thin);
         }
+        IconKind::ImageGeneric => {
+            rect_outline(frame, point(4.0, 6.0), size_scale(size, 16.0, 12.0), thin);
+            frame.fill(
+                &Path::circle(point(8.0, 10.0), size.width * 0.07),
+                Color::from_rgb8(0x70, 0xC6, 0x55),
+            );
+            frame.stroke(&Path::line(point(7.0, 15.0), point(11.0, 11.0)), thin);
+            frame.stroke(&Path::line(point(11.0, 11.0), point(15.0, 15.0)), thin);
+            frame.stroke(&Path::line(point(15.0, 15.0), point(19.0, 9.0)), thin);
+        }
         IconKind::Adjustments => {
             let left = Path::new(|b| {
                 b.move_to(point(12.0, 4.0));
@@ -576,6 +786,13 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             frame.stroke(&Path::line(point(6.0, 12.0), point(18.0, 12.0)), thin);
             frame.stroke(&Path::line(point(6.0, 16.0), point(18.0, 16.0)), thin);
         }
+        IconKind::ValueDecrease => {
+            frame.stroke(&Path::line(point(7.0, 12.0), point(17.0, 12.0)), thin);
+        }
+        IconKind::ValueIncrease => {
+            frame.stroke(&Path::line(point(7.0, 12.0), point(17.0, 12.0)), thin);
+            frame.stroke(&Path::line(point(12.0, 7.0), point(12.0, 17.0)), thin);
+        }
         IconKind::ChevronDown => {
             frame.stroke(&Path::line(point(7.0, 9.0), point(12.0, 15.0)), thin);
             frame.stroke(&Path::line(point(12.0, 15.0), point(17.0, 9.0)), thin);
@@ -610,6 +827,24 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             color,
             size.width,
         ),
+        IconKind::ColorSwap => {
+            frame.stroke(&Path::line(point(6.0, 7.0), point(16.0, 7.0)), thin);
+            frame.stroke(&Path::line(point(18.0, 17.0), point(8.0, 17.0)), thin);
+            triangle(frame, point(16.0, 4.5), point(20.0, 7.0), point(16.0, 9.5), color);
+            triangle(frame, point(8.0, 14.5), point(4.0, 17.0), point(8.0, 19.5), color);
+        }
+        IconKind::ColorReset => {
+            rect_outline(frame, point(6.0, 6.0), size_scale(size, 6.5, 6.5), thin);
+            rect_outline(frame, point(11.5, 11.5), size_scale(size, 6.5, 6.5), thin);
+        }
+        IconKind::HistoryList => {
+            frame.fill(&Path::circle(point(5.0, 8.0), size.width * 0.06), color);
+            frame.fill(&Path::circle(point(5.0, 12.0), size.width * 0.06), color);
+            frame.fill(&Path::circle(point(5.0, 16.0), size.width * 0.06), color);
+            frame.stroke(&Path::line(point(8.0, 8.0), point(18.0, 8.0)), thin);
+            frame.stroke(&Path::line(point(8.0, 12.0), point(18.0, 12.0)), thin);
+            frame.stroke(&Path::line(point(8.0, 16.0), point(18.0, 16.0)), thin);
+        }
     }
 }
 

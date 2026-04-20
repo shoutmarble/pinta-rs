@@ -22,15 +22,15 @@ impl Default for Sizing {
             tool_options_height: 46,
             left_toolbar_width: 94,
             right_sidebar_width: 222,
-            footer_height: 38,
+            footer_height: 34,
             dock_header_height: 32,
             dock_toolbar_height: 34,
             toolbox_button_size: 46,
             layer_row_height: 34,
             history_row_height: 24,
-            palette_lead_width: 388,
+            palette_lead_width: 360,
             palette_cell_size: 20,
-            zoom_control_width: 96,
+            zoom_control_width: 82,
         }
     }
 }

@@ -7,12 +7,18 @@ use crate::widgets::icon::{self, IconKind};
 pub fn view<'a, Message: 'a>(
     theme: &'a PintaTheme,
     title: &'a str,
+    title_icon: Option<IconKind>,
     body: Element<'a, Message>,
     footer_icons: Vec<IconKind>,
 ) -> Element<'a, Message> {
     let header = container(
         row![
-            text(title).size(theme.typography.panel_title),
+            title_icon
+                .map(|icon_kind| icon::view(icon_kind, 14.0, 14.0, theme.colors.panel_icon))
+                .unwrap_or_else(|| container(text("")).into()),
+            text(title)
+                .size(theme.typography.panel_title)
+                .font(theme.typography.ui_medium()),
             container(icon::view(
                 IconKind::ChevronDown,
                 12.0,
