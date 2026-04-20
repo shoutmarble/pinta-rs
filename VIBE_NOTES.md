@@ -10,7 +10,7 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 
 ## Current Baseline
 
-- Workspace version: `0.1.0`
+- Workspace version: `0.1.1`
 - Branch: `main`
 - Upstream reference capture session: `../pinta-upstream/diagnostics/20260419-230608/`
 - Main upstream screenshot: `../pinta-upstream/diagnostics/20260419-230608/capture-004-main-window-spectacle.png`
