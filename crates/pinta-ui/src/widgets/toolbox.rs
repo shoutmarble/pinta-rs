@@ -58,7 +58,7 @@ fn tool_button<'a, Message: Clone + 'a>(
             if selected {
                 theme.colors.text_primary
             } else {
-                Color::from_rgb8(0x4A, 0x4A, 0x50)
+                theme.colors.icon_subtle
             },
         ))
         .width(Length::Fill)
@@ -88,7 +88,7 @@ fn tool_button<'a, Message: Clone + 'a>(
             text_color: if selected {
                 theme.colors.text_primary
             } else {
-                Color::from_rgb8(0x4A, 0x4A, 0x50)
+                theme.colors.icon_subtle
             },
             border: Border::default()
                 .rounded(theme.radii.md)

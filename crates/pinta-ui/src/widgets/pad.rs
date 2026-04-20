@@ -1,5 +1,5 @@
 use iced::widget::{column, container, row, text};
-use iced::{Background, Border, Color, Element, Length};
+use iced::{Background, Border, Element, Length};
 use pinta_theme::PintaTheme;
 
 use crate::widgets::icon::{self, IconKind};
@@ -39,25 +39,20 @@ pub fn view<'a, Message: 'a>(
             .padding([theme.spacing.xs, theme.spacing.sm]),
         |row, icon_kind| {
             row.push(
-                container(icon::view(
-                    icon_kind,
-                    14.0,
-                    14.0,
-                    Color::from_rgb8(0x55, 0x55, 0x5A),
-                ))
-                .width(Length::Fixed((theme.sizing.dock_header_height - 6) as f32))
-                .height(Length::Fixed((theme.sizing.dock_header_height - 6) as f32))
-                .style(move |_| {
-                    container::Style::default()
-                        .background(Background::Color(theme.colors.panel_header_bg))
-                        .border(
-                            Border::default()
-                                .rounded(theme.radii.sm)
-                                .width(1)
-                                .color(theme.colors.border_subtle),
-                        )
-                        .color(Color::from_rgb8(0x55, 0x55, 0x5A))
-                }),
+                container(icon::view(icon_kind, 14.0, 14.0, theme.colors.panel_icon))
+                    .width(Length::Fixed((theme.sizing.dock_header_height - 6) as f32))
+                    .height(Length::Fixed((theme.sizing.dock_header_height - 6) as f32))
+                    .style(move |_| {
+                        container::Style::default()
+                            .background(Background::Color(theme.colors.panel_header_bg))
+                            .border(
+                                Border::default()
+                                    .rounded(theme.radii.sm)
+                                    .width(1)
+                                    .color(theme.colors.border_subtle),
+                            )
+                            .color(theme.colors.panel_icon)
+                    }),
             )
         },
     );

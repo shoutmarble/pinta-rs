@@ -1,12 +1,7 @@
-use iced::widget::{column, container, row, scrollable, text};
-use iced::{
-    Alignment, Background, Border, Color, Element, Length,
-    alignment::{Horizontal, Vertical},
-};
+use iced::widget::{column, container, row, scrollable};
+use iced::{Background, Element, Length};
 use pinta_ui::widgets::{
-    canvas_viewport::CanvasViewport,
-    icon::{self, IconKind},
-    pad, status_bar, toolbox,
+    canvas_viewport::CanvasViewport, icon::IconKind, pad, shell, status_bar, toolbox,
 };
 
 use crate::message::AppMessage;
@@ -133,145 +128,104 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
         },
     ];
 
-    let header = container(
-        row![
-            row![
-                chrome_button(theme, IconKind::DocumentNew, false),
-                chrome_button(theme, IconKind::OpenImage, false),
-                chrome_button(theme, IconKind::Save, false),
-                chrome_button(theme, IconKind::Undo, true),
-                chrome_button(theme, IconKind::Redo, true),
-                chrome_button(theme, IconKind::Scissors, false),
-                chrome_button(theme, IconKind::Clipboard, false),
-            ]
-            .spacing(theme.spacing.xs)
-            .width(Length::FillPortion(3))
-            .align_y(Alignment::Center),
-            container(
-                text(format!("{} - Pinta", state.document_name))
-                    .size(theme.typography.toolbar)
-                    .color(theme.colors.text_primary),
-            )
-            .width(Length::FillPortion(4))
-            .padding([0.0, theme.spacing.md])
-            .center_y(Length::Fill),
-            row![
-                chrome_button(theme, IconKind::Eye, false),
-                chrome_button(theme, IconKind::ImageLandscape, false),
-                chrome_button(theme, IconKind::Adjustments, false),
-                chrome_button(theme, IconKind::Effects, false),
-                chrome_button(theme, IconKind::Menu, false),
-                round_control(theme, IconKind::ChevronDown),
-                round_control(theme, IconKind::ChevronUp),
-                round_control(theme, IconKind::WindowClose),
-            ]
-            .spacing(theme.spacing.xs)
-            .width(Length::FillPortion(3))
-            .align_y(Alignment::Center),
-        ]
-        .align_y(Alignment::Center),
-    )
-    .padding([theme.spacing.xs, theme.spacing.md])
-    .height(Length::Fixed(theme.sizing.top_bar_height as f32))
-    .width(Length::Fill)
-    .style(move |_| {
-        iced::widget::container::Style::default()
-            .background(Background::Color(theme.colors.toolbar_bg))
-            .border(Border::default().width(1).color(theme.colors.border_subtle))
-    });
+    let header = container(shell::title_bar(
+        theme,
+        shell::TitleBar {
+            document_title: &state.document_name,
+            leading_actions: &[
+                shell::ToolbarAction {
+                    icon: IconKind::DocumentNew,
+                    muted: false,
+                },
+                shell::ToolbarAction {
+                    icon: IconKind::OpenImage,
+                    muted: false,
+                },
+                shell::ToolbarAction {
+                    icon: IconKind::Save,
+                    muted: false,
+                },
+                shell::ToolbarAction {
+                    icon: IconKind::Undo,
+                    muted: true,
+                },
+                shell::ToolbarAction {
+                    icon: IconKind::Redo,
+                    muted: true,
+                },
+                shell::ToolbarAction {
+                    icon: IconKind::Scissors,
+                    muted: false,
+                },
+                shell::ToolbarAction {
+                    icon: IconKind::Clipboard,
+                    muted: false,
+                },
+            ],
+            trailing_actions: &[
+                shell::ToolbarAction {
+                    icon: IconKind::Eye,
+                    muted: false,
+                },
+                shell::ToolbarAction {
+                    icon: IconKind::ImageLandscape,
+                    muted: false,
+                },
+                shell::ToolbarAction {
+                    icon: IconKind::Adjustments,
+                    muted: false,
+                },
+                shell::ToolbarAction {
+                    icon: IconKind::Effects,
+                    muted: false,
+                },
+                shell::ToolbarAction {
+                    icon: IconKind::Menu,
+                    muted: false,
+                },
+            ],
+            window_controls: &[
+                IconKind::ChevronDown,
+                IconKind::ChevronUp,
+                IconKind::WindowClose,
+            ],
+        },
+    ));
 
-    let tool_options = container(
-        row![
-            text("Tool:")
-                .size(theme.typography.toolbar)
-                .color(theme.colors.text_primary),
-            chrome_button(theme, IconKind::Paintbrush, false),
-            text("Brush width:")
-                .size(theme.typography.toolbar)
-                .color(theme.colors.text_primary),
-            segmented_value(theme, state.brush_width),
-            text("Type:")
-                .size(theme.typography.toolbar)
-                .color(theme.colors.text_primary),
-            dropdown_chip(theme, "Normal", 126.0),
-            icon_dropdown_chip(theme, IconKind::LineCurve, 48.0),
-        ]
-        .spacing(theme.spacing.sm)
-        .align_y(Alignment::Center),
-    )
-    .padding([theme.spacing.xs, theme.spacing.md])
-    .width(Length::Fill)
-    .height(Length::Fixed(theme.sizing.tool_options_height as f32));
+    let tool_options = container(shell::tool_options_bar(
+        theme,
+        shell::ToolOptionsBar {
+            tool_label: "Tool:",
+            tool_icon: IconKind::Paintbrush,
+            value_label: "Brush width:",
+            value: state.brush_width,
+            mode_label: "Type:",
+            mode_value: "Normal",
+            mode_width: 126.0,
+            shape_icon: IconKind::LineCurve,
+            shape_width: 48.0,
+        },
+    ));
 
     let viewport = CanvasViewport::new(theme.clone(), state.viewport.clone())
         .view()
         .map(AppMessage::from);
 
-    let layers_body: Element<'_, AppMessage> = column(state.layers.iter().map(|layer| {
-        container(
-            row![
-                icon::view(IconKind::Eye, 18.0, 18.0, theme.colors.text_muted),
-                text(layer.clone())
-                    .size(theme.typography.body)
-                    .color(theme.colors.text_primary),
-                container(icon::view(
-                    IconKind::ThumbnailSample,
-                    52.0,
-                    30.0,
-                    theme.colors.text_primary
-                ))
-                .width(Length::Fixed(52.0))
-                .height(Length::Fixed(30.0))
-                .style(move |_| {
-                    iced::widget::container::Style::default()
-                        .background(iced::Background::Color(theme.colors.canvas_page_bg))
-                        .border(
-                            iced::Border::default()
-                                .width(1)
-                                .color(theme.colors.border_strong),
-                        )
-                }),
-            ]
-            .spacing(theme.spacing.md)
-            .align_y(Alignment::Center),
-        )
-        .height(Length::Fixed(theme.sizing.layer_row_height as f32))
-        .width(Length::Fill)
-        .padding([0.0, theme.spacing.sm])
-        .style(move |_| {
-            iced::widget::container::Style::default()
-                .background(iced::Background::Color(theme.colors.selected_bg))
-                .border(
-                    iced::Border::default()
-                        .width(1)
-                        .color(theme.colors.border_subtle),
-                )
-        })
-        .into()
-    }))
+    let layers_body: Element<'_, AppMessage> = column(
+        state
+            .layers
+            .iter()
+            .map(|layer| shell::layer_row(theme, layer, true)),
+    )
     .into();
 
     let history_body: Element<'_, AppMessage> = scrollable(
-        column(state.history.iter().cloned().map(|entry| {
-            container(
-                row![
-                    icon::view(IconKind::OpenImage, 14.0, 14.0, theme.colors.text_muted),
-                    text(entry)
-                        .size(theme.typography.caption)
-                        .color(theme.colors.text_primary),
-                ]
-                .spacing(theme.spacing.md)
-                .align_y(Alignment::Center),
-            )
-            .height(Length::Fixed(theme.sizing.history_row_height as f32))
-            .width(Length::Fill)
-            .padding([0.0, theme.spacing.sm])
-            .style(move |_| {
-                iced::widget::container::Style::default()
-                    .background(iced::Background::Color(theme.colors.panel_bg))
-            })
-            .into()
-        }))
+        column(
+            state
+                .history
+                .iter()
+                .map(|entry| shell::history_row(theme, IconKind::OpenImage, entry)),
+        )
         .spacing(theme.spacing.xs),
     )
     .into();
@@ -327,154 +281,4 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
                 .background(Background::Color(theme.colors.window_bg))
         })
         .into()
-}
-
-fn chrome_button<'a>(
-    theme: &'a pinta_theme::PintaTheme,
-    icon_kind: IconKind,
-    muted: bool,
-) -> Element<'a, AppMessage> {
-    let icon_color = if muted {
-        Color::from_rgba(
-            theme.colors.text_muted.r,
-            theme.colors.text_muted.g,
-            theme.colors.text_muted.b,
-            0.22,
-        )
-    } else {
-        theme.colors.text_primary
-    };
-
-    container(icon::view(icon_kind, 19.0, 19.0, icon_color))
-        .width(Length::Fixed(22.0))
-        .height(Length::Fixed(22.0))
-        .align_x(Horizontal::Center)
-        .align_y(Vertical::Center)
-        .into()
-}
-
-fn round_control<'a>(
-    theme: &'a pinta_theme::PintaTheme,
-    icon_kind: IconKind,
-) -> Element<'a, AppMessage> {
-    container(icon::view(icon_kind, 14.0, 14.0, theme.colors.text_primary))
-        .width(Length::Fixed(24.0))
-        .height(Length::Fixed(24.0))
-        .align_x(Horizontal::Center)
-        .align_y(Vertical::Center)
-        .style(move |_| {
-            iced::widget::container::Style::default()
-                .background(Background::Color(theme.colors.hover_bg))
-                .border(Border::default().rounded(theme.radii.sm))
-        })
-        .into()
-}
-
-fn segmented_value<'a>(theme: &'a pinta_theme::PintaTheme, value: u32) -> Element<'a, AppMessage> {
-    container(
-        row![
-            container(
-                text(value.to_string())
-                    .size(theme.typography.toolbar)
-                    .color(theme.colors.text_primary),
-            )
-            .width(Length::FillPortion(2))
-            .center_y(Length::Fill),
-            stepper_button(theme, "-"),
-            stepper_button(theme, "+"),
-        ]
-        .align_y(Alignment::Center),
-    )
-    .width(Length::Fixed(168.0))
-    .height(Length::Fixed(34.0))
-    .padding([0.0, theme.spacing.sm])
-    .style(move |_| {
-        iced::widget::container::Style::default()
-            .background(Background::Color(theme.colors.hover_bg))
-            .border(
-                Border::default()
-                    .rounded(theme.radii.md)
-                    .width(1)
-                    .color(theme.colors.border_subtle),
-            )
-    })
-    .into()
-}
-
-fn stepper_button<'a>(
-    theme: &'a pinta_theme::PintaTheme,
-    label: &'a str,
-) -> Element<'a, AppMessage> {
-    container(
-        text(label)
-            .size(theme.typography.toolbar)
-            .color(theme.colors.text_primary),
-    )
-    .width(Length::Fixed(26.0))
-    .center(Length::Fill)
-    .style(move |_| {
-        iced::widget::container::Style::default()
-            .border(Border::default().width(1).color(theme.colors.border_subtle))
-    })
-    .into()
-}
-
-fn dropdown_chip<'a>(
-    theme: &'a pinta_theme::PintaTheme,
-    label: &'a str,
-    width: f32,
-) -> Element<'a, AppMessage> {
-    container(
-        row![
-            text(label)
-                .size(theme.typography.toolbar)
-                .color(theme.colors.text_primary),
-            icon::view(IconKind::ChevronDown, 12.0, 12.0, theme.colors.text_primary),
-        ]
-        .spacing(theme.spacing.sm)
-        .align_y(Alignment::Center),
-    )
-    .width(Length::Fixed(width))
-    .height(Length::Fixed(34.0))
-    .padding([0.0, theme.spacing.sm])
-    .style(move |_| {
-        iced::widget::container::Style::default()
-            .background(Background::Color(theme.colors.hover_bg))
-            .border(
-                Border::default()
-                    .rounded(theme.radii.md)
-                    .width(1)
-                    .color(theme.colors.border_subtle),
-            )
-    })
-    .into()
-}
-
-fn icon_dropdown_chip<'a>(
-    theme: &'a pinta_theme::PintaTheme,
-    icon_kind: IconKind,
-    width: f32,
-) -> Element<'a, AppMessage> {
-    container(
-        row![
-            icon::view(icon_kind, 14.0, 14.0, theme.colors.text_primary),
-            icon::view(IconKind::ChevronDown, 12.0, 12.0, theme.colors.text_primary),
-        ]
-        .spacing(theme.spacing.xs)
-        .align_y(Alignment::Center),
-    )
-    .width(Length::Fixed(width))
-    .height(Length::Fixed(34.0))
-    .padding([0.0, theme.spacing.sm])
-    .style(move |_| {
-        iced::widget::container::Style::default()
-            .background(Background::Color(theme.colors.hover_bg))
-            .border(
-                Border::default()
-                    .rounded(theme.radii.md)
-                    .width(1)
-                    .color(theme.colors.border_subtle),
-            )
-    })
-    .into()
 }
