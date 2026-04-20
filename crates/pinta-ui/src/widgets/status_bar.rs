@@ -34,27 +34,42 @@ pub fn view<'a, Message: 'a>(
     )
     .width(Length::Fixed(theme.sizing.palette_lead_width as f32));
 
-    let zoom_box = container(text(zoom_text).size(theme.typography.caption))
-        .padding([theme.spacing.xs, theme.spacing.sm])
-        .style(move |_| {
-            container::Style::default()
-                .background(Background::Color(theme.colors.panel_bg))
-                .border(
-                    Border::default()
-                        .rounded(theme.radii.md)
-                        .width(1)
-                        .color(theme.colors.border_subtle),
-                )
-        });
+    let zoom_box = container(
+        text(zoom_text)
+            .size(theme.typography.caption)
+            .color(theme.colors.text_primary),
+    )
+    .padding([theme.spacing.xs, theme.spacing.sm])
+    .style(move |_| {
+        container::Style::default()
+            .background(Background::Color(theme.colors.panel_bg))
+            .border(
+                Border::default()
+                    .rounded(theme.radii.md)
+                    .width(1)
+                    .color(theme.colors.border_subtle),
+            )
+    });
 
     let content = row![
         palette_lead,
         icon::view(IconKind::MovePixels, 14.0, 14.0, theme.colors.text_muted),
-        text(cursor_text).size(theme.typography.caption),
+        text(cursor_text)
+            .size(theme.typography.caption)
+            .color(theme.colors.text_primary),
         icon::view(IconKind::RectSelect, 14.0, 14.0, theme.colors.text_muted),
-        text(selection_text).size(theme.typography.caption),
-        icon::view(IconKind::ThumbnailSample, 14.0, 14.0, theme.colors.text_muted),
-        text(image_text).size(theme.typography.caption),
+        text(selection_text)
+            .size(theme.typography.caption)
+            .color(theme.colors.text_primary),
+        icon::view(
+            IconKind::ThumbnailSample,
+            14.0,
+            14.0,
+            theme.colors.text_muted
+        ),
+        text(image_text)
+            .size(theme.typography.caption)
+            .color(theme.colors.text_primary),
         zoom_box,
     ]
     .spacing(theme.spacing.md)
@@ -66,11 +81,7 @@ pub fn view<'a, Message: 'a>(
         .style(move |_| {
             container::Style::default()
                 .background(Background::Color(theme.colors.status_bg))
-                .border(
-                    Border::default()
-                        .width(1)
-                        .color(theme.colors.border_subtle),
-                )
+                .border(Border::default().width(1).color(theme.colors.border_subtle))
         })
         .into()
 }
@@ -86,7 +97,9 @@ fn swatch<'a, Message: 'a>(
         .height(Length::Fixed(height))
         .style(move |_| {
             container::Style::default()
-                .background(Background::Color(iced::Color::from_rgb8(rgb[0], rgb[1], rgb[2])))
+                .background(Background::Color(iced::Color::from_rgb8(
+                    rgb[0], rgb[1], rgb[2],
+                )))
                 .border(
                     Border::default()
                         .rounded(theme.radii.sm)

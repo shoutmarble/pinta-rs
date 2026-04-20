@@ -10,8 +10,7 @@ pub enum ToolKind {
     Zoom,
 }
 
-impl ToolKind {
-}
+impl ToolKind {}
 
 #[derive(Debug, Clone)]
 pub struct PencilSession {

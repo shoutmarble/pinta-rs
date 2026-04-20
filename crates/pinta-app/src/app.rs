@@ -1,8 +1,8 @@
 use glam::DVec2;
 use iced::{Element, Task, window};
-use image::{ImageBuffer, ImageFormat, Rgba};
 use pinta_ui::widgets::canvas_viewport::CanvasAction;
 
+use crate::diagnostics;
 use crate::message::AppMessage;
 use crate::state::{AppState, PencilSession, ToolKind};
 use crate::tools::pencil;
@@ -16,20 +16,33 @@ pub fn update(state: &mut AppState, message: AppMessage) -> Task<AppMessage> {
     match message {
         AppMessage::ToolSelected(tool) => state.active_tool = tool,
         AppMessage::CaptureFinished => {}
-        AppMessage::CaptureRequested(output_path) => {
-            return window::get_latest().then(move |maybe_id| {
+        AppMessage::CaptureRequested(request) => {
+            let capture_request = request.clone();
+            let capture_state = state.clone();
+
+            return window::latest().then(move |maybe_id| {
                 let Some(id) = maybe_id else {
                     return Task::none();
                 };
 
-                let capture_path = output_path.clone();
+                let request_for_screenshot = capture_request.clone();
+                let state_for_screenshot = capture_state.clone();
 
                 window::screenshot(id).then(move |screenshot| {
-                    let output_path = capture_path.clone();
+                    let capture_request = request_for_screenshot.clone();
+                    let capture_state = state_for_screenshot.clone();
 
                     Task::perform(
                         async move {
-                            save_window_capture(output_path, screenshot);
+                            let mut rgba = screenshot.rgba.to_vec();
+                            unpremultiply_rgba(&mut rgba);
+                            diagnostics::save_artifacts(
+                                &capture_request,
+                                &capture_state,
+                                &rgba,
+                                screenshot.size.width,
+                                screenshot.size.height,
+                            );
                         },
                         |_| AppMessage::CaptureFinished,
                     )
@@ -40,7 +53,10 @@ pub fn update(state: &mut AppState, message: AppMessage) -> Task<AppMessage> {
             CanvasAction::CursorMoved(screen) => on_canvas_moved(state, screen),
             CanvasAction::Pressed(screen) => on_canvas_pressed(state, screen),
             CanvasAction::Released(screen) => on_canvas_released(state, screen),
-            CanvasAction::Scrolled { delta_lines, cursor } => {
+            CanvasAction::Scrolled {
+                delta_lines,
+                cursor,
+            } => {
                 let next_zoom = (state.viewport.zoom + delta_lines * 0.1).clamp(0.1, 16.0);
                 state.viewport.zoom_about_screen_point(cursor, next_zoom);
                 state.zoom_percent = (state.viewport.zoom * 100.0).round() as u32;
@@ -55,33 +71,27 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
     main_window::view(state)
 }
 
-fn save_window_capture(output_path: String, screenshot: window::Screenshot) {
-    eprintln!(
-        "capture screenshot size={}x{} bytes={}",
-        screenshot.size.width,
-        screenshot.size.height,
-        screenshot.bytes.len()
-    );
+fn unpremultiply_rgba(rgba: &mut [u8]) {
+    for pixel in rgba.chunks_exact_mut(4) {
+        let alpha = pixel[3];
 
-    let Some(image) = ImageBuffer::<Rgba<u8>, _>::from_raw(
-        screenshot.size.width,
-        screenshot.size.height,
-        screenshot.bytes.to_vec(),
-    ) else {
-        eprintln!("capture failed: screenshot bytes did not match image dimensions");
-        return;
-    };
-
-    let temp_path = format!("{output_path}.tmp");
-    let ready_path = format!("{output_path}.ready");
-
-    if image.save_with_format(&temp_path, ImageFormat::Png).is_ok() {
-        if std::fs::rename(&temp_path, &output_path).is_ok() {
-            let _ = std::fs::write(&ready_path, b"ok");
-            eprintln!("capture saved to {output_path}");
+        if alpha == 0 {
+            pixel[0] = 0;
+            pixel[1] = 0;
+            pixel[2] = 0;
+            continue;
         }
-    } else {
-        eprintln!("capture failed: could not encode png to {temp_path}");
+
+        if alpha == u8::MAX {
+            continue;
+        }
+
+        let alpha = u16::from(alpha);
+
+        for channel in &mut pixel[..3] {
+            let value = (u16::from(*channel) * u16::from(u8::MAX) + alpha / 2) / alpha;
+            *channel = value.min(u16::from(u8::MAX)) as u8;
+        }
     }
 }
 
@@ -90,7 +100,9 @@ fn on_canvas_pressed(state: &mut AppState, screen: DVec2) {
     state.cursor_text = format!("{:.0}, {:.0}", image.x, image.y);
 
     if state.active_tool == ToolKind::Pencil {
-        state.pencil_session = Some(PencilSession { points: vec![image] });
+        state.pencil_session = Some(PencilSession {
+            points: vec![image],
+        });
         pencil::begin_stroke(state, image);
     }
 }

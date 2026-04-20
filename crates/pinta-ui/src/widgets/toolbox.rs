@@ -23,7 +23,7 @@ pub fn view<'a, Message: Clone + 'a>(
             rows = rows.push(
                 row![tool_button(theme, left), tool_button(theme, item)]
                     .spacing(theme.spacing.xs)
-                    .padding([0, theme.spacing.xxs]),
+                    .padding([0.0, theme.spacing.xxs]),
             );
         } else {
             pending = Some(item);
@@ -31,10 +31,7 @@ pub fn view<'a, Message: Clone + 'a>(
     }
 
     if let Some(item) = pending {
-        rows = rows.push(
-            row![tool_button(theme, item)]
-                .padding([0, theme.spacing.xxs]),
-        );
+        rows = rows.push(row![tool_button(theme, item)].padding([0.0, theme.spacing.xxs]));
     }
 
     container(rows)
@@ -54,45 +51,52 @@ fn tool_button<'a, Message: Clone + 'a>(
     };
 
     button(
-        container(icon::view(item.icon, 18.0, 18.0, if selected {
-            theme.colors.text_primary
-        } else {
-            Color::from_rgb8(0x4A, 0x4A, 0x50)
-        }))
-            .width(Length::Fill)
-            .center(Length::Fill),
+        container(icon::view(
+            item.icon,
+            18.0,
+            18.0,
+            if selected {
+                theme.colors.text_primary
+            } else {
+                Color::from_rgb8(0x4A, 0x4A, 0x50)
+            },
+        ))
+        .width(Length::Fill)
+        .center(Length::Fill),
     )
-        .width(Length::Fixed(theme.sizing.toolbox_button_size as f32))
-        .height(Length::Fixed((theme.sizing.toolbox_button_size - 8) as f32))
-        .padding(0)
-        .on_press_maybe(item.on_press)
-        .style(move |_theme, status| {
-            let background = match status {
-                button::Status::Hovered => theme.colors.toolbox_hover_bg,
-                button::Status::Pressed => theme.colors.selected_bg,
-                button::Status::Disabled => base_bg,
-                button::Status::Active => base_bg,
-            };
+    .width(Length::Fixed(theme.sizing.toolbox_button_size as f32))
+    .height(Length::Fixed((theme.sizing.toolbox_button_size - 8) as f32))
+    .padding(0)
+    .on_press_maybe(item.on_press)
+    .style(move |_theme, status| {
+        let background = match status {
+            button::Status::Hovered => theme.colors.toolbox_hover_bg,
+            button::Status::Pressed => theme.colors.selected_bg,
+            button::Status::Disabled => base_bg,
+            button::Status::Active => base_bg,
+        };
 
-            let border_width = if selected || matches!(status, button::Status::Hovered | button::Status::Pressed) {
+        let border_width =
+            if selected || matches!(status, button::Status::Hovered | button::Status::Pressed) {
                 1
             } else {
                 0
             };
 
-            button::Style {
-                background: Some(Background::Color(background)),
-                text_color: if selected {
-                    theme.colors.text_primary
-                } else {
-                    Color::from_rgb8(0x4A, 0x4A, 0x50)
-                },
-                border: Border::default()
-                    .rounded(theme.radii.md)
-                    .width(border_width)
-                    .color(theme.colors.border_subtle),
-                shadow: Default::default(),
-            }
-        })
-        .into()
+        button::Style {
+            background: Some(Background::Color(background)),
+            text_color: if selected {
+                theme.colors.text_primary
+            } else {
+                Color::from_rgb8(0x4A, 0x4A, 0x50)
+            },
+            border: Border::default()
+                .rounded(theme.radii.md)
+                .width(border_width)
+                .color(theme.colors.border_subtle),
+            shadow: Default::default(),
+            snap: true,
+        }
+    })
+    .into()
 }

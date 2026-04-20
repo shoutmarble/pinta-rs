@@ -3,7 +3,9 @@ use glam::DVec2;
 use crate::state::AppState;
 
 pub fn begin_stroke(state: &mut AppState, image: DVec2) {
-    state.history.push(format!("Pencil down at {:.0}, {:.0}", image.x, image.y));
+    state
+        .history
+        .push(format!("Pencil down at {:.0}, {:.0}", image.x, image.y));
 }
 
 pub fn extend_stroke(state: &mut AppState, image: DVec2) {

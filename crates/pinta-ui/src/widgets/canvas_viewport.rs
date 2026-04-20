@@ -1,7 +1,8 @@
 use glam::DVec2;
 use iced::mouse;
-use iced::widget::canvas::{self, Canvas, Frame, Geometry, Path, Program, Stroke};
-use iced::{Element, Length, Point, Rectangle, Renderer, Size, Theme};
+use iced::widget::Action;
+use iced::widget::canvas::{Canvas, Frame, Geometry, Path, Program, Stroke};
+use iced::{Element, Event, Length, Point, Rectangle, Renderer, Size, Theme};
 use pinta_theme::PintaTheme;
 
 #[derive(Debug, Clone)]
@@ -90,7 +91,11 @@ impl Program<CanvasAction> for ViewportProgram {
         _cursor: mouse::Cursor,
     ) -> Vec<Geometry> {
         let mut frame = Frame::new(renderer, bounds.size());
-        frame.fill_rectangle(Point::ORIGIN, bounds.size(), self.theme.colors.canvas_surround_bg);
+        frame.fill_rectangle(
+            Point::ORIGIN,
+            bounds.size(),
+            self.theme.colors.canvas_surround_bg,
+        );
 
         let horizontal_margin = bounds.width * 0.105;
         let vertical_margin = bounds.height * 0.105;
@@ -104,6 +109,15 @@ impl Program<CanvasAction> for ViewportProgram {
         let px = |x: f32| page_x + page_size.width * (x / 800.0);
         let py = |y: f32| page_y + page_size.height * (y / 600.0);
         let scale = page_size.width / 800.0;
+
+        // Drop shadow (offset right and down)
+        let shadow_offset = 4.0;
+        let shadow_color = iced::Color::from_rgba8(0x00, 0x00, 0x00, 0.25);
+        let shadow = Path::rectangle(
+            Point::new(page_x + shadow_offset, page_y + shadow_offset),
+            page_size,
+        );
+        frame.fill(&shadow, shadow_color);
 
         let page = Path::rectangle(Point::new(page_x, page_y), page_size);
         frame.fill(&page, self.theme.colors.canvas_page_bg);
@@ -119,7 +133,10 @@ impl Program<CanvasAction> for ViewportProgram {
 
         let green_rect = Path::rectangle(
             Point::new(px(318.0), py(108.0)),
-            Size::new(page_size.width * (274.0 / 800.0), page_size.height * (122.0 / 600.0)),
+            Size::new(
+                page_size.width * (274.0 / 800.0),
+                page_size.height * (122.0 / 600.0),
+            ),
         );
         frame.fill(&green_rect, iced::Color::from_rgb8(0x5A, 0x8D, 0x4B));
 
@@ -155,7 +172,10 @@ impl Program<CanvasAction> for ViewportProgram {
         );
 
         let zoom_bar = Path::rectangle(
-            Point::new(page_x + page_size.width - 94.0, page_y + page_size.height + 16.0),
+            Point::new(
+                page_x + page_size.width - 94.0,
+                page_y + page_size.height + 16.0,
+            ),
             Size::new((self.state.zoom * 34.0).clamp(24.0, 86.0), 3.0),
         );
         frame.fill(&zoom_bar, self.theme.colors.selected_bg);
@@ -166,51 +186,51 @@ impl Program<CanvasAction> for ViewportProgram {
     fn update(
         &self,
         _state: &mut Self::State,
-        event: canvas::Event,
+        event: &Event,
         bounds: Rectangle,
         cursor: mouse::Cursor,
-    ) -> (canvas::event::Status, Option<CanvasAction>) {
+    ) -> Option<Action<CanvasAction>> {
         match event {
-            canvas::Event::Mouse(mouse::Event::CursorMoved { position }) => {
+            Event::Mouse(mouse::Event::CursorMoved { position }) => {
                 let local = DVec2::new(position.x as f64, position.y as f64);
-                (canvas::event::Status::Captured, Some(CanvasAction::CursorMoved(local)))
+                Some(Action::publish(CanvasAction::CursorMoved(local)).and_capture())
             }
-            canvas::Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
+            Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
                 if let Some(position) = cursor.position_in(bounds) {
                     let local = DVec2::new(position.x as f64, position.y as f64);
-                    (canvas::event::Status::Captured, Some(CanvasAction::Pressed(local)))
+                    Some(Action::publish(CanvasAction::Pressed(local)).and_capture())
                 } else {
-                    (canvas::event::Status::Ignored, None)
+                    None
                 }
             }
-            canvas::Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
+            Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
                 if let Some(position) = cursor.position_in(bounds) {
                     let local = DVec2::new(position.x as f64, position.y as f64);
-                    (canvas::event::Status::Captured, Some(CanvasAction::Released(local)))
+                    Some(Action::publish(CanvasAction::Released(local)).and_capture())
                 } else {
-                    (canvas::event::Status::Ignored, None)
+                    None
                 }
             }
-            canvas::Event::Mouse(mouse::Event::WheelScrolled { delta }) => {
+            Event::Mouse(mouse::Event::WheelScrolled { delta }) => {
                 let lines = match delta {
-                    mouse::ScrollDelta::Lines { y, .. } => y,
-                    mouse::ScrollDelta::Pixels { y, .. } => y / 40.0,
+                    mouse::ScrollDelta::Lines { y, .. } => *y,
+                    mouse::ScrollDelta::Pixels { y, .. } => *y / 40.0,
                 };
 
                 if let Some(position) = cursor.position_in(bounds) {
                     let local = DVec2::new(position.x as f64, position.y as f64);
-                    (
-                        canvas::event::Status::Captured,
-                        Some(CanvasAction::Scrolled {
+                    Some(
+                        Action::publish(CanvasAction::Scrolled {
                             delta_lines: lines,
                             cursor: local,
-                        }),
+                        })
+                        .and_capture(),
                     )
                 } else {
-                    (canvas::event::Status::Ignored, None)
+                    None
                 }
             }
-            _ => (canvas::event::Status::Ignored, None),
+            _ => None,
         }
     }
 }

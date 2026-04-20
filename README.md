@@ -9,11 +9,11 @@
 - The mock app reproduces the main Pinta shell, toolbox, canvas scene, layers/history pads, and status bar.
 - The current screenshot in this README is generated locally from the running mock using `spectacle`.
 - The paired upstream workspace was instrumented with diagnostics and screenshot hooks so the Rust mock can be compared against a real Pinta build instead of guessing from static screenshots.
-- Version `0.1.3` is the current tagged workspace snapshot, published through GitHub Releases rather than checked-in release artifacts.
+- Version `0.1.4-rc1` is the current prerelease workspace snapshot, published through GitHub Releases rather than checked-in release artifacts.
 
-## Release 0.1.3
+## Release 0.1.4-rc1
 
-- Git tag: `0.1.3`
+- Git tag: `0.1.4-rc1`
 - Release distribution: GitHub Releases for this repository
 - Resume notes for future LLM sessions: `VIBE_NOTES.md`
 
@@ -128,6 +128,26 @@ The latest reference capture session currently used for comparison is under:
 - `../pinta-upstream/diagnostics/20260419-230608/`
 
 ## Comparing Mock vs Upstream
+
+The canonical parity workflow is the bundle script below. It captures a full upstream window and a full mock window into the workspace root, refreshes both diagnostics session folders, and rebuilds the control comparison bundle.
+
+```bash
+cd pinta-rs
+./tools/capture_parity_bundle.sh
+```
+
+That refreshes:
+
+- `../pinta-upstream-window.png`
+- `../pinta-rs-window.png`
+- `../pinta-window-side-by-side.png`
+- `../pinta-window-diff.png`
+- `../pinta-window-metric.txt`
+- `../pinta-upstream-reflection/`
+- `../pinta-rs-diagnostics-output/`
+- `../ui-control-comparisons/`
+
+For a narrower legacy diff against one specific capture pair, the older compare script is still available:
 
 ```bash
 cd pinta-rs

@@ -1,4 +1,7 @@
-use iced::widget::canvas::{path, Canvas, Fill, Frame, Geometry, Path, Program, Stroke};
+use iced::widget::{
+    canvas::{Canvas, Fill, Frame, Geometry, Path, Program, Stroke, path},
+    svg,
+};
 use iced::{Color, Element, Length, Point, Rectangle, Renderer, Size, Theme};
 
 #[derive(Debug, Clone, Copy)]
@@ -58,21 +61,112 @@ pub fn view<'a, Message: 'a>(
     height: f32,
     color: Color,
 ) -> Element<'a, Message> {
-    Canvas::new(IconProgram {
-        kind,
-        color,
-        size: Size::new(width, height),
-    })
-    .width(Length::Fixed(width))
-    .height(Length::Fixed(height))
-    .into()
+    if let Some(handle) = svg_handle(kind, color) {
+        return svg(handle)
+            .width(Length::Fixed(width))
+            .height(Length::Fixed(height))
+            .into();
+    }
+
+    Canvas::new(IconProgram { kind, color })
+        .width(Length::Fixed(width))
+        .height(Length::Fixed(height))
+        .into()
+}
+
+fn svg_handle(kind: IconKind, color: Color) -> Option<svg::Handle> {
+    let stroke = svg_color(color);
+    let fill = svg_color(color);
+    let markup = match kind {
+        IconKind::MovePixels => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path d='M12 4v16M4 12h16'/><path fill='{fill}' stroke='none' d='M12 2l2.5 4h-5zM12 22l-2.5-4h5zM2 12l4-2.5v5zM22 12l-4 2.5v-5z'/></svg>"#
+        ),
+        IconKind::MoveSelection => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='6' y='6' width='12' height='12' rx='1'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3'/></svg>"#
+        ),
+        IconKind::Zoom => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='10' cy='10' r='5.5'/><path d='M14.5 14.5 20 20'/></svg>"#
+        ),
+        IconKind::Pan => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M8 20v-8c0-1 .8-1.8 1.8-1.8S11.5 11 11.5 12v-5c0-1 .8-1.8 1.8-1.8S15 6 15 7v4.5-3c0-1 .8-1.8 1.8-1.8S18.5 7.5 18.5 8.5V13c0-2 3-1.9 3 0v2.5c0 1.4-.5 2.8-1.5 3.8l-1.3 1.3c-.8.8-1.9 1.2-3 1.2h-3.6c-1.2 0-2.3-.5-3.1-1.4L6 17.5C5 16.4 3.5 17 3.5 18.2V19"/></svg>"#
+        ),
+        IconKind::RectSelect => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'><rect x='5' y='5' width='14' height='14' stroke-dasharray='3 3'/></svg>"#
+        ),
+        IconKind::EllipseSelect => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-dasharray='3 3'><circle cx='12' cy='12' r='7'/></svg>"#
+        ),
+        IconKind::LassoSelect => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 8c1.5-2.7 8.8-3.7 11.3-.9 2.2 2.4 1.4 6.2-1.6 8-2.3 1.4-5.8 1.8-8 .8-3.6-1.7-3.5-5.3-1.7-7.9Z'/></svg>"#
+        ),
+        IconKind::MagicWand => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 18 14 10'/><path d='M4.5 19.5 7 22'/><path d='M15 4v4M13 6h4M17.5 8.5v2M16.5 9.5h2'/></svg>"#
+        ),
+        IconKind::Paintbrush => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 18c1.6 0 2.6-1 2.6-2.5 0-.7.3-1.3.8-1.8l7.9-7.9 2.9 2.9-7.9 7.9c-.5.5-1.1.8-1.8.8H9.9c-.9 0-1.8.4-2.4 1.1L6 20'/><path fill='{fill}' stroke='none' d='M17.2 4.8 19.3 2.7a1 1 0 0 1 1.4 0l.6.6a1 1 0 0 1 0 1.4l-2.1 2.1z'/></svg>"#
+        ),
+        IconKind::Pencil => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 19 17.5 6.5l2 2L7 21H5z'/><path fill='{fill}' stroke='none' d='M18.2 5.8 20.3 3.7a1 1 0 0 1 1.4 0l.6.6a1 1 0 0 1 0 1.4l-2.1 2.1z'/></svg>"#
+        ),
+        IconKind::Eraser => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='{fill}' stroke='{stroke}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='m7 16 6-9 7 5-6 9z'/><path fill='none' d='M6 20h10'/></svg>"#
+        ),
+        IconKind::PaintBucket => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path fill='{fill}' d='m6 10 6-6 6 6-6 6z'/><path fill='{fill}' stroke='none' d='M18.2 14.2c1.4 1.6 1.4 2.8 0 4.6-1.4-1.8-1.4-3 0-4.6Z'/><path d='M5 20h11'/></svg>"#
+        ),
+        IconKind::Gradient => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><defs><linearGradient id='g' x1='0%' y1='100%' x2='100%' y2='0%'><stop offset='0%' stop-color='{fill}' stop-opacity='0.15'/><stop offset='100%' stop-color='{fill}' stop-opacity='1'/></linearGradient></defs><rect x='5' y='7' width='14' height='10' rx='1' fill='url(#g)' stroke='{stroke}' stroke-width='1.8'/></svg>"#
+        ),
+        IconKind::ColorPicker => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 17 16 8'/><circle cx='18' cy='6' r='1.7' fill='{fill}' stroke='none'/></svg>"#
+        ),
+        IconKind::Text => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.2' stroke-linecap='round'><path d='M7 6h10M12 6v12'/></svg>"#
+        ),
+        IconKind::LineCurve => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 18 10 14'/><path d='M10 14c2-5 6-5 9 1'/></svg>"#
+        ),
+        IconKind::Rectangle => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2'><rect x='5' y='7' width='14' height='10'/></svg>"#
+        ),
+        IconKind::RoundedRectangle => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2'><rect x='5' y='7' width='14' height='10' rx='3'/></svg>"#
+        ),
+        IconKind::Ellipse => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2'><circle cx='12' cy='12' r='7'/></svg>"#
+        ),
+        IconKind::Freeform => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 14c-.8-5 5-8 10-6 3 1.2 4 5 1.8 8-1.8 2.4-6.3 3.4-9 2.1C7.1 17 6.2 15.7 6 14Z'/></svg>"#
+        ),
+        IconKind::CloneStamp => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='8' y='11' width='8' height='6' rx='1.5'/><path d='M12 11V5M9 5h6M9.5 8h5'/></svg>"#
+        ),
+        IconKind::Recolor => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 17 15 9'/><circle cx='16.4' cy='7.6' r='1.4'/><path fill='{fill}' stroke='none' d='M18 13c1.4 1.7 1.4 3.2 0 5-1.4-1.8-1.4-3.3 0-5Z'/></svg>"#
+        ),
+        IconKind::ChevronDown => format!(
+            r#"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='{stroke}' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m7 9 5 6 5-6'/></svg>"#
+        ),
+        _ => return None,
+    };
+
+    Some(svg::Handle::from_memory(markup.into_bytes()))
+}
+
+fn svg_color(color: Color) -> String {
+    format!(
+        "rgba({:.0},{:.0},{:.0},{:.3})",
+        color.r * 255.0,
+        color.g * 255.0,
+        color.b * 255.0,
+        color.a,
+    )
 }
 
 #[derive(Debug, Clone, Copy)]
 struct IconProgram {
     kind: IconKind,
     color: Color,
-    size: Size,
 }
 
 impl<Message> Program<Message> for IconProgram {
@@ -87,15 +181,19 @@ impl<Message> Program<Message> for IconProgram {
         _cursor: iced::mouse::Cursor,
     ) -> Vec<Geometry> {
         let mut frame = Frame::new(renderer, bounds.size());
-        draw_icon(&mut frame, self.kind, self.color, self.size);
+        draw_icon(&mut frame, self.kind, self.color, bounds.size());
         vec![frame.into_geometry()]
     }
 }
 
 fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
     let point = |x: f32, y: f32| Point::new(size.width * x / 24.0, size.height * y / 24.0);
-    let stroke = Stroke::default().with_width((size.width / 12.0).max(1.2)).with_color(color);
-    let thin = Stroke::default().with_width((size.width / 18.0).max(1.0)).with_color(color);
+    let stroke = Stroke::default()
+        .with_width((size.width / 12.0).max(1.2))
+        .with_color(color);
+    let thin = Stroke::default()
+        .with_width((size.width / 18.0).max(1.0))
+        .with_color(color);
 
     match kind {
         IconKind::DocumentNew => {
@@ -115,10 +213,34 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
         IconKind::MovePixels => {
             frame.stroke(&Path::line(point(12.0, 4.0), point(12.0, 20.0)), thin);
             frame.stroke(&Path::line(point(4.0, 12.0), point(20.0, 12.0)), thin);
-            triangle(frame, point(12.0, 2.0), point(10.0, 6.0), point(14.0, 6.0), color);
-            triangle(frame, point(12.0, 22.0), point(10.0, 18.0), point(14.0, 18.0), color);
-            triangle(frame, point(2.0, 12.0), point(6.0, 10.0), point(6.0, 14.0), color);
-            triangle(frame, point(22.0, 12.0), point(18.0, 10.0), point(18.0, 14.0), color);
+            triangle(
+                frame,
+                point(12.0, 2.0),
+                point(10.0, 6.0),
+                point(14.0, 6.0),
+                color,
+            );
+            triangle(
+                frame,
+                point(12.0, 22.0),
+                point(10.0, 18.0),
+                point(14.0, 18.0),
+                color,
+            );
+            triangle(
+                frame,
+                point(2.0, 12.0),
+                point(6.0, 10.0),
+                point(6.0, 14.0),
+                color,
+            );
+            triangle(
+                frame,
+                point(22.0, 12.0),
+                point(18.0, 10.0),
+                point(18.0, 14.0),
+                color,
+            );
         }
         IconKind::MoveSelection => {
             rect_outline(frame, point(5.0, 5.0), size_scale(size, 14.0, 14.0), thin);
@@ -152,8 +274,12 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             });
             frame.stroke(&hand, thin);
         }
-        IconKind::RectSelect => rect_outline(frame, point(5.0, 5.0), size_scale(size, 14.0, 14.0), stroke),
-        IconKind::EllipseSelect => frame.stroke(&Path::circle(point(12.0, 12.0), size.width * 0.24), stroke),
+        IconKind::RectSelect => {
+            rect_outline(frame, point(5.0, 5.0), size_scale(size, 14.0, 14.0), stroke)
+        }
+        IconKind::EllipseSelect => {
+            frame.stroke(&Path::circle(point(12.0, 12.0), size.width * 0.24), stroke)
+        }
         IconKind::LassoSelect => {
             let path = Path::new(|b| {
                 b.move_to(point(6.0, 8.0));
@@ -182,7 +308,13 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
         }
         IconKind::Pencil => {
             frame.stroke(&Path::line(point(6.0, 18.0), point(17.0, 7.0)), stroke);
-            triangle(frame, point(18.0, 6.0), point(20.5, 3.5), point(20.5, 8.5), color);
+            triangle(
+                frame,
+                point(18.0, 6.0),
+                point(20.5, 3.5),
+                point(20.5, 8.5),
+                color,
+            );
         }
         IconKind::Eraser => {
             let eraser = Path::new(|b| {
@@ -207,14 +339,23 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             frame.stroke(&Path::line(point(5.0, 20.0), point(16.0, 20.0)), thin);
         }
         IconKind::Gradient => {
-            frame.fill(&Path::rectangle(point(5.0, 7.0), size_scale(size, 14.0, 10.0)), Fill::from(Color::from_rgba(color.r, color.g, color.b, 0.18)));
-            frame.fill(&Path::new(|b| {
-                b.move_to(point(9.0, 17.0));
-                b.line_to(point(19.0, 7.0));
-                b.line_to(point(19.0, 17.0));
-                b.close();
-            }), color);
-            frame.stroke(&Path::rectangle(point(5.0, 7.0), size_scale(size, 14.0, 10.0)), thin);
+            frame.fill(
+                &Path::rectangle(point(5.0, 7.0), size_scale(size, 14.0, 10.0)),
+                Fill::from(Color::from_rgba(color.r, color.g, color.b, 0.18)),
+            );
+            frame.fill(
+                &Path::new(|b| {
+                    b.move_to(point(9.0, 17.0));
+                    b.line_to(point(19.0, 7.0));
+                    b.line_to(point(19.0, 17.0));
+                    b.close();
+                }),
+                color,
+            );
+            frame.stroke(
+                &Path::rectangle(point(5.0, 7.0), size_scale(size, 14.0, 10.0)),
+                thin,
+            );
         }
         IconKind::ColorPicker => {
             frame.stroke(&Path::line(point(7.0, 17.0), point(16.0, 8.0)), stroke);
@@ -232,9 +373,19 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             });
             frame.stroke(&curve, stroke);
         }
-        IconKind::Rectangle => rect_outline(frame, point(5.0, 7.0), size_scale(size, 14.0, 10.0), stroke),
-        IconKind::RoundedRectangle => rounded_rect(frame, point(5.0, 7.0), size_scale(size, 14.0, 10.0), size.width * 0.12, thin),
-        IconKind::Ellipse => frame.stroke(&Path::circle(point(12.0, 12.0), size.width * 0.22), stroke),
+        IconKind::Rectangle => {
+            rect_outline(frame, point(5.0, 7.0), size_scale(size, 14.0, 10.0), stroke)
+        }
+        IconKind::RoundedRectangle => rounded_rect(
+            frame,
+            point(5.0, 7.0),
+            size_scale(size, 14.0, 10.0),
+            size.width * 0.12,
+            thin,
+        ),
+        IconKind::Ellipse => {
+            frame.stroke(&Path::circle(point(12.0, 12.0), size.width * 0.22), stroke)
+        }
         IconKind::Freeform => {
             let blob = Path::new(|b| {
                 b.move_to(point(6.0, 14.0));
@@ -245,7 +396,13 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             frame.stroke(&blob, stroke);
         }
         IconKind::CloneStamp => {
-            rounded_rect(frame, point(7.0, 11.0), size_scale(size, 10.0, 7.0), size.width * 0.08, thin);
+            rounded_rect(
+                frame,
+                point(7.0, 11.0),
+                size_scale(size, 10.0, 7.0),
+                size.width * 0.08,
+                thin,
+            );
             frame.stroke(&Path::line(point(12.0, 11.0), point(12.0, 5.0)), thin);
             frame.stroke(&Path::line(point(9.0, 5.0), point(15.0, 5.0)), thin);
             frame.stroke(&Path::line(point(9.6, 8.0), point(14.4, 8.0)), thin);
@@ -270,11 +427,28 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             frame.fill(&Path::circle(point(12.0, 12.0), size.width * 0.10), color);
         }
         IconKind::ThumbnailSample => {
-            frame.fill(&Path::rectangle(point(2.0, 2.0), size_scale(size, 20.0, 20.0)), Color::WHITE);
-            frame.stroke(&Path::rectangle(point(2.0, 2.0), size_scale(size, 20.0, 20.0)), thin);
-            frame.fill(&Path::circle(point(8.0, 9.0), size.width * 0.10), Color::from_rgb8(0xE0, 0x48, 0x3D));
-            frame.fill(&Path::rectangle(point(11.0, 6.0), size_scale(size, 7.0, 5.0)), Color::from_rgb8(0x5A, 0x8D, 0x4B));
-            frame.stroke(&Path::line(point(5.0, 18.0), point(19.0, 15.0)), Stroke::default().with_width((size.width / 16.0).max(1.0)).with_color(Color::from_rgb8(0x21, 0x21, 0x23)));
+            frame.fill(
+                &Path::rectangle(point(2.0, 2.0), size_scale(size, 20.0, 20.0)),
+                Color::WHITE,
+            );
+            frame.stroke(
+                &Path::rectangle(point(2.0, 2.0), size_scale(size, 20.0, 20.0)),
+                thin,
+            );
+            frame.fill(
+                &Path::circle(point(8.0, 9.0), size.width * 0.10),
+                Color::from_rgb8(0xE0, 0x48, 0x3D),
+            );
+            frame.fill(
+                &Path::rectangle(point(11.0, 6.0), size_scale(size, 7.0, 5.0)),
+                Color::from_rgb8(0x5A, 0x8D, 0x4B),
+            );
+            frame.stroke(
+                &Path::line(point(5.0, 18.0), point(19.0, 15.0)),
+                Stroke::default()
+                    .with_width((size.width / 16.0).max(1.0))
+                    .with_color(Color::from_rgb8(0x21, 0x21, 0x23)),
+            );
         }
         IconKind::Add => plus(frame, point(12.0, 12.0), size.width * 0.26, stroke),
         IconKind::Duplicate => {
@@ -290,8 +464,20 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             frame.stroke(&Path::line(point(16.0, 8.0), point(12.0, 12.0)), thin);
             frame.stroke(&Path::line(point(12.0, 12.0), point(12.0, 18.0)), thin);
         }
-        IconKind::MoveUp => triangle(frame, point(12.0, 7.0), point(7.0, 14.0), point(17.0, 14.0), color),
-        IconKind::MoveDown => triangle(frame, point(12.0, 17.0), point(7.0, 10.0), point(17.0, 10.0), color),
+        IconKind::MoveUp => triangle(
+            frame,
+            point(12.0, 7.0),
+            point(7.0, 14.0),
+            point(17.0, 14.0),
+            color,
+        ),
+        IconKind::MoveDown => triangle(
+            frame,
+            point(12.0, 17.0),
+            point(7.0, 10.0),
+            point(17.0, 10.0),
+            color,
+        ),
         IconKind::More => {
             frame.fill(&Path::circle(point(8.0, 12.0), size.width * 0.06), color);
             frame.fill(&Path::circle(point(12.0, 12.0), size.width * 0.06), color);
@@ -304,7 +490,10 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
         }
         IconKind::Save => {
             rect_outline(frame, point(5.0, 5.0), size_scale(size, 14.0, 14.0), thin);
-            frame.fill(&Path::rectangle(point(8.0, 6.0), size_scale(size, 8.0, 4.0)), color);
+            frame.fill(
+                &Path::rectangle(point(8.0, 6.0), size_scale(size, 8.0, 4.0)),
+                color,
+            );
             rect_outline(frame, point(8.0, 13.0), size_scale(size, 8.0, 5.0), thin);
         }
         IconKind::Scissors => {
@@ -315,11 +504,20 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
         }
         IconKind::Clipboard => {
             rect_outline(frame, point(7.0, 7.0), size_scale(size, 10.0, 12.0), thin);
-            rounded_rect(frame, point(9.0, 4.0), size_scale(size, 6.0, 4.0), size.width * 0.10, thin);
+            rounded_rect(
+                frame,
+                point(9.0, 4.0),
+                size_scale(size, 6.0, 4.0),
+                size.width * 0.10,
+                thin,
+            );
         }
         IconKind::ImageLandscape => {
             rect_outline(frame, point(4.0, 6.0), size_scale(size, 16.0, 12.0), thin);
-            frame.fill(&Path::circle(point(8.0, 10.0), size.width * 0.07), Color::from_rgb8(0x70, 0xC6, 0x55));
+            frame.fill(
+                &Path::circle(point(8.0, 10.0), size.width * 0.07),
+                Color::from_rgb8(0x70, 0xC6, 0x55),
+            );
             frame.stroke(&Path::line(point(7.0, 15.0), point(11.0, 11.0)), thin);
             frame.stroke(&Path::line(point(11.0, 11.0), point(15.0, 15.0)), thin);
             frame.stroke(&Path::line(point(15.0, 15.0), point(19.0, 9.0)), thin);
@@ -336,17 +534,20 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
                 });
             });
             frame.stroke(&left, thin);
-            frame.fill(&Path::new(|b| {
-                b.move_to(point(12.0, 4.0));
-                b.arc(path::Arc {
-                    center: point(12.0, 12.0),
-                    radius: size.width * 0.16,
-                    start_angle: iced::Radians(-std::f32::consts::FRAC_PI_2),
-                    end_angle: iced::Radians(std::f32::consts::FRAC_PI_2),
-                });
-                b.line_to(point(12.0, 20.0));
-                b.close();
-            }), color);
+            frame.fill(
+                &Path::new(|b| {
+                    b.move_to(point(12.0, 4.0));
+                    b.arc(path::Arc {
+                        center: point(12.0, 12.0),
+                        radius: size.width * 0.16,
+                        start_angle: iced::Radians(-std::f32::consts::FRAC_PI_2),
+                        end_angle: iced::Radians(std::f32::consts::FRAC_PI_2),
+                    });
+                    b.line_to(point(12.0, 20.0));
+                    b.close();
+                }),
+                color,
+            );
         }
         IconKind::Effects => {
             sparkle(frame, point(8.0, 11.0), color, size.width * 0.13);
@@ -376,8 +577,22 @@ fn draw_icon(frame: &mut Frame, kind: IconKind, color: Color, size: Size) {
             frame.stroke(&Path::line(point(7.0, 7.0), point(17.0, 17.0)), thin);
             frame.stroke(&Path::line(point(17.0, 7.0), point(7.0, 17.0)), thin);
         }
-        IconKind::Undo => curved_arrow(frame, point(8.0, 11.0), point(19.0, 10.0), true, color, size.width),
-        IconKind::Redo => curved_arrow(frame, point(16.0, 11.0), point(5.0, 10.0), false, color, size.width),
+        IconKind::Undo => curved_arrow(
+            frame,
+            point(8.0, 11.0),
+            point(19.0, 10.0),
+            true,
+            color,
+            size.width,
+        ),
+        IconKind::Redo => curved_arrow(
+            frame,
+            point(16.0, 11.0),
+            point(5.0, 10.0),
+            false,
+            color,
+            size.width,
+        ),
     }
 }
 
@@ -393,13 +608,28 @@ fn rounded_rect(frame: &mut Frame, origin: Point, size: Size, radius: f32, strok
     let path = Path::new(|b| {
         b.move_to(Point::new(origin.x + radius, origin.y));
         b.line_to(Point::new(origin.x + size.width - radius, origin.y));
-        b.quadratic_curve_to(Point::new(origin.x + size.width, origin.y), Point::new(origin.x + size.width, origin.y + radius));
-        b.line_to(Point::new(origin.x + size.width, origin.y + size.height - radius));
-        b.quadratic_curve_to(Point::new(origin.x + size.width, origin.y + size.height), Point::new(origin.x + size.width - radius, origin.y + size.height));
+        b.quadratic_curve_to(
+            Point::new(origin.x + size.width, origin.y),
+            Point::new(origin.x + size.width, origin.y + radius),
+        );
+        b.line_to(Point::new(
+            origin.x + size.width,
+            origin.y + size.height - radius,
+        ));
+        b.quadratic_curve_to(
+            Point::new(origin.x + size.width, origin.y + size.height),
+            Point::new(origin.x + size.width - radius, origin.y + size.height),
+        );
         b.line_to(Point::new(origin.x + radius, origin.y + size.height));
-        b.quadratic_curve_to(Point::new(origin.x, origin.y + size.height), Point::new(origin.x, origin.y + size.height - radius));
+        b.quadratic_curve_to(
+            Point::new(origin.x, origin.y + size.height),
+            Point::new(origin.x, origin.y + size.height - radius),
+        );
         b.line_to(Point::new(origin.x, origin.y + radius));
-        b.quadratic_curve_to(Point::new(origin.x, origin.y), Point::new(origin.x + radius, origin.y));
+        b.quadratic_curve_to(
+            Point::new(origin.x, origin.y),
+            Point::new(origin.x + radius, origin.y),
+        );
     });
     frame.stroke(&path, stroke);
 }
@@ -415,17 +645,48 @@ fn triangle(frame: &mut Frame, a: Point, b: Point, c: Point, color: Color) {
 }
 
 fn plus(frame: &mut Frame, center: Point, arm: f32, stroke: Stroke<'_>) {
-    frame.stroke(&Path::line(Point::new(center.x - arm, center.y), Point::new(center.x + arm, center.y)), stroke);
-    frame.stroke(&Path::line(Point::new(center.x, center.y - arm), Point::new(center.x, center.y + arm)), stroke);
+    frame.stroke(
+        &Path::line(
+            Point::new(center.x - arm, center.y),
+            Point::new(center.x + arm, center.y),
+        ),
+        stroke,
+    );
+    frame.stroke(
+        &Path::line(
+            Point::new(center.x, center.y - arm),
+            Point::new(center.x, center.y + arm),
+        ),
+        stroke,
+    );
 }
 
 fn sparkle(frame: &mut Frame, center: Point, color: Color, arm: f32) {
     let stroke = Stroke::default().with_width(1.2).with_color(color);
-    frame.stroke(&Path::line(Point::new(center.x - arm, center.y), Point::new(center.x + arm, center.y)), stroke);
-    frame.stroke(&Path::line(Point::new(center.x, center.y - arm), Point::new(center.x, center.y + arm)), stroke);
+    frame.stroke(
+        &Path::line(
+            Point::new(center.x - arm, center.y),
+            Point::new(center.x + arm, center.y),
+        ),
+        stroke,
+    );
+    frame.stroke(
+        &Path::line(
+            Point::new(center.x, center.y - arm),
+            Point::new(center.x, center.y + arm),
+        ),
+        stroke,
+    );
 }
 
-fn curved_arrow(frame: &mut Frame, start: Point, end: Point, left_head: bool, color: Color, width: f32) {
+fn curved_arrow(
+    frame: &mut Frame,
+    start: Point,
+    end: Point,
+    left_head: bool,
+    color: Color,
+    width: f32,
+) {
     let path = Path::new(|b| {
         b.move_to(start);
         b.bezier_curve_to(
@@ -434,7 +695,9 @@ fn curved_arrow(frame: &mut Frame, start: Point, end: Point, left_head: bool, co
             end,
         );
     });
-    let stroke = Stroke::default().with_width((width / 15.0).max(1.0)).with_color(color);
+    let stroke = Stroke::default()
+        .with_width((width / 15.0).max(1.0))
+        .with_color(color);
     frame.stroke(&path, stroke);
     if left_head {
         triangle(

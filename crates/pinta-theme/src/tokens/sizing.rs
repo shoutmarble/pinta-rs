@@ -20,7 +20,7 @@ impl Default for Sizing {
         Self {
             top_bar_height: 44,
             tool_options_height: 46,
-            left_toolbar_width: 112,
+            left_toolbar_width: 94,
             right_sidebar_width: 222,
             footer_height: 38,
             dock_header_height: 32,
