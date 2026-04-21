@@ -113,11 +113,12 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
         .map(AppMessage::from);
 
     let workspace = container(viewport)
-        .width(Length::Fill)
+        .width(Length::FillPortion(1))
         .height(Length::Fill)
+        .clip(true)
         .style(move |_| {
             iced::widget::container::Style::default()
-                .background(Background::Color(theme.colors.canvas_surround_bg))
+                .background(Background::Color(theme.colors.panel_bg))
                 .border(
                     Border::default()
                         .width(1)
@@ -186,14 +187,20 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
     .width(Length::Fixed(theme.sizing.right_sidebar_width as f32));
 
     let main = row![
-        container(toolbox::view(theme, tools)).padding([theme.spacing.sm, 0.0]),
+        container(toolbox::view(theme, tools))
+            .width(Length::Fixed(theme.sizing.left_toolbar_width as f32))
+            .padding([theme.spacing.sm, 0.0]),
         workspace,
-        container(right_sidebar).style(move |_| {
-            iced::widget::container::Style::default()
-                .background(Background::Color(theme.colors.sidebar_bg))
-        }),
+        container(right_sidebar)
+            .width(Length::Fixed(theme.sizing.right_sidebar_width as f32))
+            .clip(true)
+            .style(move |_| {
+                iced::widget::container::Style::default()
+                    .background(Background::Color(theme.colors.sidebar_bg))
+            }),
     ]
     .height(Length::Fill)
+    .clip(true)
     .spacing(0);
 
     let footer = status_bar::view(

@@ -2,55 +2,41 @@ use glam::DVec2;
 use iced::mouse;
 use iced::widget::Action;
 use iced::widget::canvas::{Canvas, Frame, Geometry, Path, Program, Stroke};
+use iced::widget::image;
 use iced::{Element, Event, Length, Point, Rectangle, Renderer, Size, Theme};
 use pinta_theme::PintaTheme;
+use std::sync::LazyLock;
 
 use crate::widgets::icon::IconKind;
 
-const SURFACE_INSET_X: f32 = 12.0;
-const SURFACE_INSET_Y_TOP: f32 = 18.0;
-const SURFACE_INSET_Y_BOTTOM: f32 = 12.0;
+const SURFACE_INSET_X: f32 = 0.0;
+const SURFACE_INSET_Y_TOP: f32 = 0.0;
+const SURFACE_INSET_Y_BOTTOM: f32 = 0.0;
+
+static SAMPLE_INPUT_HANDLE: LazyLock<image::Handle> = LazyLock::new(|| {
+    image::Handle::from_bytes(include_bytes!("../../../../../sample-input.png").as_slice())
+});
 
 #[derive(Debug, Clone)]
 pub struct ViewportState {
     pub viewport_size: (u32, u32),
     pub zoom: f32,
-    pub pan: DVec2,
     pub hovered_image_pos: Option<DVec2>,
-    pub checker_size: f32,
 }
 
 impl Default for ViewportState {
     fn default() -> Self {
         Self {
             viewport_size: (800, 600),
-            zoom: 0.86,
-            pan: DVec2::ZERO,
+            zoom: 1.0,
             hovered_image_pos: None,
-            checker_size: 12.0,
         }
     }
 }
 
 impl ViewportState {
-    pub fn surface_size(&self) -> Size {
-        Size::new(
-            self.viewport_size.0 as f32 * self.zoom,
-            self.viewport_size.1 as f32 * self.zoom,
-        )
-    }
-
-    pub fn image_to_screen(&self, image: DVec2) -> DVec2 {
-        image * self.zoom as f64
-    }
-
-    pub fn screen_to_image(&self, screen: DVec2) -> DVec2 {
-        screen / self.zoom as f64
-    }
-
     pub fn zoom_about_screen_point(&mut self, _cursor: DVec2, next_zoom: f32) {
         self.zoom = next_zoom.max(0.05);
-        self.pan = DVec2::ZERO;
     }
 }
 
@@ -108,62 +94,21 @@ impl Program<CanvasAction> for ViewportProgram {
         _cursor: mouse::Cursor,
     ) -> Vec<Geometry> {
         let mut frame = Frame::new(renderer, bounds.size());
-        let surface_bounds = anchored_surface_rect(bounds.size(), self.state.surface_size());
-        let clip_bounds = clipped_surface_rect(bounds.size(), surface_bounds);
+        let canvas_bounds = fitted_surface_rect(bounds.size(), self.state.viewport_size, self.state.zoom);
+        let canvas = Path::rectangle(canvas_bounds.position(), canvas_bounds.size());
+        frame.fill(&canvas, self.theme.colors.canvas_page_bg);
+        frame.stroke(
+            &canvas,
+            Stroke::default()
+                .with_width(1.0)
+                .with_color(self.theme.colors.border_strong),
+        );
+
+        let surface_bounds = canvas_bounds;
+        let clip_bounds = surface_bounds;
 
         frame.with_clip(clip_bounds, |frame| {
-            let page = Path::rectangle(surface_bounds.position(), surface_bounds.size());
-            frame.fill(&page, self.theme.colors.canvas_page_bg);
-            frame.stroke(
-                &page,
-                Stroke::default()
-                    .with_width(1.0)
-                    .with_color(self.theme.colors.border_strong),
-            );
-
-            let px = |x: f32| surface_bounds.x + x * self.state.zoom;
-            let py = |y: f32| surface_bounds.y + y * self.state.zoom;
-            let scale = self.state.zoom;
-
-            let red_circle = Path::circle(Point::new(px(188.0), py(176.0)), 72.0 * scale);
-            frame.fill(&red_circle, iced::Color::from_rgb8(0xE0, 0x48, 0x3D));
-
-            let green_rect = Path::rectangle(
-                Point::new(px(318.0), py(108.0)),
-                Size::new(274.0 * scale, 122.0 * scale),
-            );
-            frame.fill(&green_rect, iced::Color::from_rgb8(0x5A, 0x8D, 0x4B));
-
-            let black_line = Path::line(
-                Point::new(px(96.0), py(492.0)),
-                Point::new(px(692.0), py(364.0)),
-            );
-            frame.stroke(
-                &black_line,
-                Stroke::default()
-                    .with_width((8.0 * scale).max(3.0))
-                    .with_color(iced::Color::from_rgb8(0x21, 0x21, 0x23)),
-            );
-
-            let wave = Path::new(|builder| {
-                builder.move_to(Point::new(px(110.0), py(318.0)));
-                builder.bezier_curve_to(
-                    Point::new(px(218.0), py(178.0)),
-                    Point::new(px(398.0), py(184.0)),
-                    Point::new(px(503.0), py(324.0)),
-                );
-                builder.bezier_curve_to(
-                    Point::new(px(614.0), py(444.0)),
-                    Point::new(px(700.0), py(448.0)),
-                    Point::new(px(785.0), py(210.0)),
-                );
-            });
-            frame.stroke(
-                &wave,
-                Stroke::default()
-                    .with_width((8.0 * scale).max(3.0))
-                    .with_color(iced::Color::from_rgb8(0x3F, 0x66, 0xB6)),
-            );
+            frame.draw_image(surface_bounds, &*SAMPLE_INPUT_HANDLE);
 
             if self.scripted_effect {
                 draw_scripted_effect(frame, self.active_tool, &self.state, surface_bounds);
@@ -180,17 +125,14 @@ impl Program<CanvasAction> for ViewportProgram {
         bounds: Rectangle,
         cursor: mouse::Cursor,
     ) -> Option<Action<CanvasAction>> {
-        let surface_bounds = anchored_surface_rect(bounds.size(), self.state.surface_size());
-        let clipped_bounds = clipped_surface_rect(bounds.size(), surface_bounds);
+        let surface_bounds = fitted_surface_rect(bounds.size(), self.state.viewport_size, self.state.zoom);
+        let clipped_bounds = surface_bounds;
 
         match event {
             Event::Mouse(mouse::Event::CursorMoved { position }) => {
-                let local = DVec2::new(
-                    position.x as f64 - surface_bounds.x as f64,
-                    position.y as f64 - surface_bounds.y as f64,
-                );
                 if clipped_bounds.contains(Point::new(position.x, position.y)) {
-                    Some(Action::publish(CanvasAction::CursorMoved(local)).and_capture())
+                    let image = image_position(*position, surface_bounds, self.state.viewport_size);
+                    Some(Action::publish(CanvasAction::CursorMoved(image)).and_capture())
                 } else {
                     None
                 }
@@ -198,11 +140,8 @@ impl Program<CanvasAction> for ViewportProgram {
             Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
                 if let Some(position) = cursor.position_in(bounds) {
                     if clipped_bounds.contains(position) {
-                        let local = DVec2::new(
-                            position.x as f64 - surface_bounds.x as f64,
-                            position.y as f64 - surface_bounds.y as f64,
-                        );
-                        Some(Action::publish(CanvasAction::Pressed(local)).and_capture())
+                        let image = image_position(position, surface_bounds, self.state.viewport_size);
+                        Some(Action::publish(CanvasAction::Pressed(image)).and_capture())
                     } else {
                         None
                     }
@@ -213,11 +152,8 @@ impl Program<CanvasAction> for ViewportProgram {
             Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
                 if let Some(position) = cursor.position_in(bounds) {
                     if clipped_bounds.contains(position) {
-                        let local = DVec2::new(
-                            position.x as f64 - surface_bounds.x as f64,
-                            position.y as f64 - surface_bounds.y as f64,
-                        );
-                        Some(Action::publish(CanvasAction::Released(local)).and_capture())
+                        let image = image_position(position, surface_bounds, self.state.viewport_size);
+                        Some(Action::publish(CanvasAction::Released(image)).and_capture())
                     } else {
                         None
                     }
@@ -233,14 +169,11 @@ impl Program<CanvasAction> for ViewportProgram {
 
                 if let Some(position) = cursor.position_in(bounds) {
                     if clipped_bounds.contains(position) {
-                        let local = DVec2::new(
-                            position.x as f64 - surface_bounds.x as f64,
-                            position.y as f64 - surface_bounds.y as f64,
-                        );
+                        let image = image_position(position, surface_bounds, self.state.viewport_size);
                         Some(
                             Action::publish(CanvasAction::Scrolled {
                                 delta_lines: lines,
-                                cursor: local,
+                                cursor: image,
                             })
                             .and_capture(),
                         )
@@ -257,9 +190,9 @@ impl Program<CanvasAction> for ViewportProgram {
 }
 
 fn draw_scripted_effect(frame: &mut Frame, active_tool: IconKind, state: &ViewportState, surface_bounds: Rectangle) {
-    let px = |x: f32| surface_bounds.x + surface_bounds.width * (x / state.viewport_size.0 as f32);
-    let py = |y: f32| surface_bounds.y + surface_bounds.height * (y / state.viewport_size.1 as f32);
     let scale = surface_bounds.width / state.viewport_size.0 as f32;
+    let px = |x: f32| surface_bounds.x + x * scale;
+    let py = |y: f32| surface_bounds.y + y * scale;
 
     match active_tool {
         IconKind::MovePixels => {
@@ -371,73 +304,100 @@ fn draw_scripted_effect(frame: &mut Frame, active_tool: IconKind, state: &Viewpo
     }
 }
 
-fn anchored_surface_rect(bounds: Size, surface: Size) -> Rectangle {
-    let safe_width = (bounds.width - SURFACE_INSET_X * 2.0).max(1.0);
-    let safe_height = (bounds.height - SURFACE_INSET_Y_TOP - SURFACE_INSET_Y_BOTTOM).max(1.0);
-
-    let extra_width = (safe_width - surface.width).max(0.0);
-    let extra_height = (safe_height - surface.height).max(0.0);
-
-    let x = SURFACE_INSET_X + extra_width.min(8.0);
-    let y = SURFACE_INSET_Y_TOP + extra_height.min(64.0);
-
+fn viewport_bounds(bounds: Size) -> Rectangle {
     Rectangle {
-        x,
-        y,
-        width: surface.width,
-        height: surface.height,
-    }
-}
-
-fn clipped_surface_rect(bounds: Size, surface_bounds: Rectangle) -> Rectangle {
-    let clip_region = Rectangle {
         x: SURFACE_INSET_X,
         y: SURFACE_INSET_Y_TOP,
         width: (bounds.width - SURFACE_INSET_X * 2.0).max(1.0),
         height: (bounds.height - SURFACE_INSET_Y_TOP - SURFACE_INSET_Y_BOTTOM).max(1.0),
-    };
+    }
+}
 
-    let left = surface_bounds.x.max(clip_region.x);
-    let top = surface_bounds.y.max(clip_region.y);
-    let right = (surface_bounds.x + surface_bounds.width).min(clip_region.x + clip_region.width);
-    let bottom = (surface_bounds.y + surface_bounds.height).min(clip_region.y + clip_region.height);
+fn fitted_surface_rect(bounds: Size, viewport_size: (u32, u32), zoom: f32) -> Rectangle {
+    let viewport = viewport_bounds(bounds);
+    let width_scale = viewport.width / viewport_size.0 as f32;
+    let height_scale = viewport.height / viewport_size.1 as f32;
+    let base_scale = width_scale.min(height_scale).min(1.0);
+    let scale = base_scale * zoom.max(0.05);
+    let width = viewport_size.0 as f32 * scale;
+    let height = viewport_size.1 as f32 * scale;
+    let x = viewport.x + (viewport.width - width) / 2.0;
+    let y = viewport.y + (viewport.height - height) / 2.0;
 
     Rectangle {
-        x: left,
-        y: top,
-        width: (right - left).max(0.0),
-        height: (bottom - top).max(0.0),
+        x,
+        y,
+        width,
+        height,
     }
+}
+
+fn image_position(position: Point, surface_bounds: Rectangle, viewport_size: (u32, u32)) -> DVec2 {
+    let x = ((position.x - surface_bounds.x) / surface_bounds.width).clamp(0.0, 1.0);
+    let y = ((position.y - surface_bounds.y) / surface_bounds.height).clamp(0.0, 1.0);
+
+    DVec2::new(
+        x as f64 * viewport_size.0 as f64,
+        y as f64 * viewport_size.1 as f64,
+    )
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{anchored_surface_rect, clipped_surface_rect};
+    use super::{fitted_surface_rect, image_position, viewport_bounds};
+    use iced::{Point, Rectangle};
     use iced::Size;
 
     #[test]
-    fn anchored_surface_keeps_zoomed_width_when_width_is_tight() {
-        let rect = anchored_surface_rect(Size::new(180.0, 300.0), Size::new(688.0, 516.0));
+    fn viewport_bounds_apply_expected_insets() {
+        let rect = viewport_bounds(Size::new(400.0, 300.0));
 
-        assert!(rect.x >= 12.0);
-        assert_eq!(rect.width, 688.0);
+        assert_eq!(rect.x, 0.0);
+        assert_eq!(rect.y, 0.0);
+        assert_eq!(rect.width, 400.0);
+        assert_eq!(rect.height, 300.0);
     }
 
     #[test]
-    fn clipped_surface_limits_visible_width_when_width_is_tight() {
-        let surface = anchored_surface_rect(Size::new(180.0, 300.0), Size::new(688.0, 516.0));
-        let clipped = clipped_surface_rect(Size::new(180.0, 300.0), surface);
+    fn fitted_surface_rect_preserves_image_aspect_ratio() {
+        let surface = fitted_surface_rect(Size::new(900.0, 700.0), (800, 600), 1.0);
 
-        assert!(clipped.x >= 12.0);
-        assert!(clipped.width <= 156.0);
+        assert_eq!(surface.width, 800.0);
+        assert_eq!(surface.height, 600.0);
+        assert_eq!(surface.x, 50.0);
+        assert_eq!(surface.y, 50.0);
     }
 
     #[test]
-    fn anchored_surface_respects_top_and_bottom_insets() {
-        let surface = anchored_surface_rect(Size::new(400.0, 180.0), Size::new(300.0, 516.0));
-        let clipped = clipped_surface_rect(Size::new(400.0, 180.0), surface);
+    fn image_position_clamps_to_surface_bounds() {
+        let image = image_position(Point::new(0.0, 0.0), Rectangle {
+            x: 20.0,
+            y: 30.0,
+            width: 200.0,
+            height: 100.0,
+        }, (800, 600));
 
-        assert!(surface.y >= 18.0);
-        assert!(clipped.height <= 150.0);
+        assert_eq!(image.x, 0.0);
+        assert_eq!(image.y, 0.0);
+    }
+
+    #[test]
+    fn fitted_surface_rect_expands_with_zoom() {
+        let surface = fitted_surface_rect(Size::new(900.0, 700.0), (800, 600), 1.5);
+
+        assert_eq!(surface.width, 1200.0);
+        assert_eq!(surface.height, 900.0);
+        assert_eq!(surface.x, -150.0);
+        assert_eq!(surface.y, -100.0);
+    }
+
+    #[test]
+    fn fitted_surface_rect_scales_down_when_viewport_is_smaller_than_canvas() {
+        let surface = fitted_surface_rect(Size::new(700.0, 500.0), (800, 600), 1.0);
+
+        assert!((surface.width - 666.6667).abs() < 0.001);
+        assert_eq!(surface.height, 500.0);
+        assert!((surface.x - 16.666656).abs() < 0.001);
+        assert_eq!(surface.y, 0.0);
     }
 }

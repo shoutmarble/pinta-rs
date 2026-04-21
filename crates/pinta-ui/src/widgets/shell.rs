@@ -288,11 +288,21 @@ fn dropdown_chip<'a, Message: 'a>(
 ) -> Element<'a, Message> {
     container(
         row![
-            text(label)
-                .size(theme.typography.toolbar)
-                .font(theme.typography.ui_regular())
-                .color(theme.colors.text_primary),
-            icon::view(IconKind::ChevronDown, 12.0, 12.0, theme.colors.text_primary),
+            container(
+                text(label)
+                    .size(theme.typography.toolbar)
+                    .font(theme.typography.ui_regular())
+                    .color(theme.colors.text_primary),
+            )
+            .width(Length::Fill)
+            .center_y(Length::Fill),
+            container(icon::view(
+                IconKind::ChevronDown,
+                12.0,
+                12.0,
+                theme.colors.text_primary,
+            ))
+            .center_y(Length::Fill),
         ]
         .spacing(theme.spacing.sm)
         .align_y(Alignment::Center),
@@ -320,8 +330,15 @@ fn icon_dropdown_chip<'a, Message: 'a>(
 ) -> Element<'a, Message> {
     container(
         row![
-            icon::view(icon_kind, 14.0, 14.0, theme.colors.text_primary),
-            icon::view(IconKind::ChevronDown, 12.0, 12.0, theme.colors.text_primary),
+            container(icon::view(icon_kind, 14.0, 14.0, theme.colors.text_primary))
+                .center_y(Length::Fill),
+            container(icon::view(
+                IconKind::ChevronDown,
+                12.0,
+                12.0,
+                theme.colors.text_primary,
+            ))
+            .center_y(Length::Fill),
         ]
         .spacing(theme.spacing.xs)
         .align_y(Alignment::Center),

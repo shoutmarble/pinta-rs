@@ -486,15 +486,21 @@ fn runtime_layout(state: &AppState, window_width: u32, window_height: u32) -> Ru
     let left_toolbar_width = px(f32::from(sizing.left_toolbar_width));
     let right_sidebar_width = px(f32::from(sizing.right_sidebar_width));
     let right_sidebar_x = window_width.saturating_sub(right_sidebar_width);
+    let workspace_x = left_toolbar_width;
+    let workspace_width = right_sidebar_x.saturating_sub(workspace_x);
     let right_sidebar_top_inset = py(f32::from(sizing.right_sidebar_top_inset));
     let right_sidebar_gap = py(f32::from(sizing.right_sidebar_gap));
     let layers_pad_height = py(f32::from(sizing.layers_pad_height));
     let history_pad_height = py(f32::from(sizing.history_pad_height));
-    let canvas_width = right_sidebar_x.saturating_sub(left_toolbar_width);
-    let surface_width = (state.viewport.viewport_size.0 as f32 * state.viewport.zoom).round() as u32;
-    let surface_height = (state.viewport.viewport_size.1 as f32 * state.viewport.zoom).round() as u32;
-    let canvas_x = left_toolbar_width + px(10.0).min(canvas_width.saturating_sub(surface_width));
-    let canvas_y = main_y + py(41.0).min(main_height.saturating_sub(surface_height));
+    let viewport_width = workspace_width;
+    let viewport_height = main_height;
+    let width_scale = viewport_width as f32 / state.viewport.viewport_size.0 as f32;
+    let height_scale = viewport_height as f32 / state.viewport.viewport_size.1 as f32;
+    let scale = width_scale.min(height_scale).min(1.0) * state.viewport.zoom.max(0.05);
+    let surface_width = (state.viewport.viewport_size.0 as f32 * scale).round() as u32;
+    let surface_height = (state.viewport.viewport_size.1 as f32 * scale).round() as u32;
+    let canvas_x = workspace_x + viewport_width.saturating_sub(surface_width) / 2;
+    let canvas_y = main_y + viewport_height.saturating_sub(surface_height) / 2;
 
     let top_padding = py(spacing.sm);
     let button_width = px(f32::from(sizing.toolbox_button_size));
@@ -525,9 +531,9 @@ fn runtime_layout(state: &AppState, window_width: u32, window_height: u32) -> Ru
         NamedRect {
             name: "workspace-layout",
             rect: Rect {
-                x: 0,
+                x: workspace_x,
                 y: main_y,
-                width: window_width,
+                width: workspace_width,
                 height: main_height,
             },
         },

@@ -11,12 +11,12 @@
 - The paired upstream workspace was instrumented with diagnostics and screenshot hooks so the Rust mock can be compared against a real Pinta build instead of guessing from static screenshots.
 - The latest footer pass added real status-bar palette behavior, a stacked foreground/background color control, and a visible 24-color subset derived from upstream Pinta defaults.
 - The latest shell pass retunes the title bar, tool options, dock chrome, and palette controls toward the upstream dark GTK layout, with tighter centering and smaller control text where appropriate.
-- The latest canvas/layout pass keeps the zoomed canvas at full scale and clips the visible viewport when width is reduced, instead of shrinking the page to fit.
-- Version `0.1.14` is the current workspace release snapshot, published through GitHub Releases rather than checked-in release artifacts.
+- The latest canvas/layout pass now renders the real sample image inside a documented viewport contract so `100%` means `1:1 unless the viewport is smaller`, while the canvas stays centered and fully visible.
+- Version `0.1.15` is the current workspace release snapshot, published through GitHub Releases rather than checked-in release artifacts.
 
-## Release 0.1.14
+## Release 0.1.15
 
-- Git tag: `0.1.14`
+- Git tag: `0.1.15`
 - Release distribution: GitHub Releases for this repository
 - Resume notes for future LLM sessions: `VIBE_NOTES.md`
 
