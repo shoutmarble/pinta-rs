@@ -6,6 +6,13 @@ from pathlib import Path
 
 from PIL import Image, ImageChops, ImageOps
 
+CLIENT_CROP = {
+    "left": 132 / 2460,
+    "right": 128 / 2460,
+    "top": 180 / 1840,
+    "bottom": 160 / 1840,
+}
+
 TOOLBOX_ORDER = [
     ("tool-move-selected-pixels", 0, 0),
     ("tool-move-selection", 0, 1),
@@ -43,8 +50,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def compare_images(left_path: Path, right_path: Path, side_by_side_path: Path, diff_path: Path) -> float:
-    left = Image.open(left_path).convert("RGBA")
-    right = Image.open(right_path).convert("RGBA")
+    left = flatten_rgba(Image.open(left_path).convert("RGBA"))
+    right = flatten_rgba(Image.open(right_path).convert("RGBA"))
 
     if right.size != left.size:
         right = right.resize(left.size, Image.Resampling.LANCZOS)
@@ -67,6 +74,84 @@ def compare_images(left_path: Path, right_path: Path, side_by_side_path: Path, d
         sq_error += sum(count * (value ** 2) for value, count in enumerate(hist))
 
     return math.sqrt(sq_error / (left.width * left.height * max(len(bands), 1)))
+
+
+def flatten_rgba(image: Image.Image) -> Image.Image:
+    if image.mode != "RGBA":
+        image = image.convert("RGBA")
+
+    background = Image.new("RGBA", image.size, (255, 255, 255, 255))
+    return Image.alpha_composite(background, image)
+
+
+def crop_window_chrome(image: Image.Image) -> Image.Image:
+    left = int(round(image.width * CLIENT_CROP["left"]))
+    right = int(round(image.width * CLIENT_CROP["right"]))
+    top = int(round(image.height * CLIENT_CROP["top"]))
+    bottom = int(round(image.height * CLIENT_CROP["bottom"]))
+
+    if left + right >= image.width or top + bottom >= image.height:
+        return image
+
+    return image.crop((left, top, image.width - right, image.height - bottom))
+
+
+def parse_bounds(path: Path) -> dict[str, int] | None:
+    if not path.exists():
+        return None
+
+    values: dict[str, int] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        try:
+            values[key] = int(value)
+        except ValueError:
+            return None
+
+    required = {"x", "y", "width", "height", "window-width", "window-height"}
+    if not required.issubset(values):
+        return None
+
+    return values
+
+
+def export_bounds_crop(
+    window_path: Path,
+    bounds_path: Path,
+    output_path: Path,
+    *,
+    trim_window: bool,
+) -> bool:
+    bounds = parse_bounds(bounds_path)
+    if bounds is None or not window_path.exists():
+        return False
+
+    image = Image.open(window_path).convert("RGBA")
+    if trim_window:
+        image = crop_window_chrome(image)
+
+    scale_x = image.width / bounds["window-width"]
+    scale_y = image.height / bounds["window-height"]
+
+    left = int(round(bounds["x"] * scale_x))
+    top = int(round(bounds["y"] * scale_y))
+    right = int(round((bounds["x"] + bounds["width"]) * scale_x))
+    bottom = int(round((bounds["y"] + bounds["height"]) * scale_y))
+
+    left = max(0, min(left, image.width))
+    top = max(0, min(top, image.height))
+    right = max(left, min(right, image.width))
+    bottom = max(top, min(bottom, image.height))
+
+    if left == right or top == bottom:
+        return False
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    image.crop((left, top, right, bottom)).save(output_path)
+    return True
 
 
 def latest_match(directory: Path, pattern: str) -> Path | None:
@@ -129,8 +214,23 @@ def main() -> int:
     }
 
     for name, pattern in major_patterns.items():
-        export_named_capture(upstream_session_dir, pattern, upstream_dir / f"{name}.png")
-        export_named_capture(mock_session_dir, pattern, mock_dir / f"{name}.png")
+        upstream_exported = export_bounds_crop(
+            upstream_window,
+            upstream_session_dir / f"bounds-{name}.txt",
+            upstream_dir / f"{name}.png",
+            trim_window=True,
+        )
+        if not upstream_exported:
+            export_named_capture(upstream_session_dir, pattern, upstream_dir / f"{name}.png")
+
+        mock_exported = export_bounds_crop(
+            mock_window,
+            mock_session_dir / f"bounds-{name}.txt",
+            mock_dir / f"{name}.png",
+            trim_window=False,
+        )
+        if not mock_exported:
+            export_named_capture(mock_session_dir, pattern, mock_dir / f"{name}.png")
 
     for name, row, column in TOOLBOX_ORDER:
         export_named_capture(upstream_session_dir, f"capture-*-{name}-crop.png", upstream_dir / f"{name}.png")

@@ -4,6 +4,7 @@ use iced::Color;
 pub struct Colors {
     pub window_bg: Color,
     pub toolbar_bg: Color,
+    pub sidebar_bg: Color,
     pub panel_bg: Color,
     pub panel_header_bg: Color,
     pub canvas_surround_bg: Color,
@@ -20,6 +21,7 @@ pub struct Colors {
     pub toolbox_selected_bg: Color,
     pub toolbox_hover_bg: Color,
     pub status_bg: Color,
+    pub status_fg: Color,
     pub checker_light: Color,
     pub checker_dark: Color,
 }
@@ -27,8 +29,9 @@ pub struct Colors {
 impl Default for Colors {
     fn default() -> Self {
         Self {
-            window_bg: Color::from_rgb8(0xFA, 0xFA, 0xFA),
+            window_bg: Color::from_rgb8(0x1E, 0x1E, 0x1E),
             toolbar_bg: Color::from_rgb8(0xFA, 0xFA, 0xFA),
+            sidebar_bg: Color::from_rgb8(0x1E, 0x1E, 0x1E),
             panel_bg: Color::from_rgb8(0xFF, 0xFF, 0xFF),
             panel_header_bg: Color::from_rgb8(0xFA, 0xFA, 0xFA),
             canvas_surround_bg: Color::from_rgb8(0xD7, 0xD1, 0xC7),
@@ -44,7 +47,8 @@ impl Default for Colors {
             selected_bg: Color::from_rgb8(0xCF, 0xE2, 0xF8),
             toolbox_selected_bg: Color::from_rgb8(0xE4, 0xE7, 0xEC),
             toolbox_hover_bg: Color::from_rgb8(0xEF, 0xF0, 0xF3),
-            status_bg: Color::from_rgb8(0xFA, 0xFA, 0xFA),
+            status_bg: Color::from_rgb8(0x24, 0x24, 0x24),
+            status_fg: Color::from_rgb8(0xF2, 0xF2, 0xF2),
             checker_light: Color::from_rgb8(0xF4, 0xF4, 0xF4),
             checker_dark: Color::from_rgb8(0xE7, 0xE7, 0xE7),
         }

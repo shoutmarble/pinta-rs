@@ -125,12 +125,17 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
                 )
         });
 
-    let layers_body: Element<'_, AppMessage> = column(
-        state
-            .layers
-            .iter()
-            .map(|layer| shell::layer_row(theme, layer, true)),
+    let layers_body: Element<'_, AppMessage> = container(
+        column(
+            state
+                .layers
+                .iter()
+                .map(|layer| shell::layer_row(theme, layer, true)),
+        )
+        .width(Length::Fill),
     )
+    .width(Length::Fill)
+    .height(Length::Fill)
     .into();
 
     let history_body: Element<'_, AppMessage> = scrollable(
@@ -140,8 +145,11 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
                 .iter()
                 .map(|entry| shell::history_row(theme, IconKind::OpenImage, entry)),
         )
-        .spacing(theme.spacing.xs),
+        .spacing(theme.spacing.xs)
+        .width(Length::Fill),
     )
+    .width(Length::Fill)
+    .height(Length::Fill)
     .into();
 
     let sidebar_top_inset = theme.sizing.right_sidebar_top_inset as f32;
@@ -180,7 +188,10 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
     let main = row![
         container(toolbox::view(theme, tools)).padding([theme.spacing.sm, 0.0]),
         workspace,
-        container(right_sidebar),
+        container(right_sidebar).style(move |_| {
+            iced::widget::container::Style::default()
+                .background(Background::Color(theme.colors.sidebar_bg))
+        }),
     ]
     .height(Length::Fill)
     .spacing(0);

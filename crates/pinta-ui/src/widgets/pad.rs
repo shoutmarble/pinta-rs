@@ -65,7 +65,13 @@ pub fn view<'a, Message: 'a>(
 
     container(column![
         container(header).height(Length::Fixed(theme.sizing.dock_header_height as f32)),
-        body,
+        container(body)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .style(move |_| {
+                container::Style::default()
+                    .background(Background::Color(theme.colors.panel_bg))
+            }),
         container(footer)
             .style(move |_| {
                 container::Style::default()
@@ -75,6 +81,7 @@ pub fn view<'a, Message: 'a>(
             .height(Length::Fixed(theme.sizing.dock_toolbar_height as f32))
     ])
     .width(Length::Fill)
+    .height(Length::Fill)
     .style(move |_| {
         container::Style::default()
             .background(Background::Color(theme.colors.panel_bg))

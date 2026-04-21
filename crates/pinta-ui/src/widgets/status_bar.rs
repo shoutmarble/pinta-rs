@@ -75,7 +75,7 @@ pub fn view<'a, Message: Clone + 'a>(
 
     let mut content = row![
         container(palette_lead).width(Length::Fixed(theme.sizing.palette_lead_width as f32)),
-        icon::view(IconKind::CursorArrow, 15.0, 15.0, theme.colors.text_muted),
+        icon::view(IconKind::CursorArrow, 15.0, 15.0, theme.colors.status_fg),
         metric_text(theme, cursor_text),
     ]
     .spacing(theme.spacing.md)
@@ -88,7 +88,7 @@ pub fn view<'a, Message: Clone + 'a>(
                 IconKind::RectSelect,
                 14.0,
                 14.0,
-                theme.colors.text_muted,
+                theme.colors.status_fg,
             ))
             .push(metric_text(theme, selection_text));
     }
@@ -118,7 +118,7 @@ fn metric_text<'a, Message: 'a>(theme: &'a PintaTheme, value: String) -> Element
     text(value)
         .size(theme.typography.caption)
         .font(theme.typography.ui_regular())
-        .color(theme.colors.text_primary)
+    .color(theme.colors.status_fg)
         .into()
 }
 
@@ -282,7 +282,7 @@ fn color_action_button<'a, Message: Clone + 'a>(
     height: f32,
 ) -> Element<'a, Message> {
     mouse_area(
-        container(icon::view(icon_kind, 10.0, 10.0, theme.colors.text_muted))
+        container(icon::view(icon_kind, 10.0, 10.0, theme.colors.status_fg))
             .width(Length::Fixed(width))
             .height(Length::Fixed(height))
             .align_x(iced::alignment::Horizontal::Center)
@@ -368,7 +368,7 @@ fn flat_control<'a, Message: 'a>(
     icon_kind: IconKind,
     width: f32,
 ) -> Element<'a, Message> {
-    container(icon::view(icon_kind, 12.0, 12.0, theme.colors.text_primary))
+    container(icon::view(icon_kind, 12.0, 12.0, theme.colors.status_fg))
         .width(Length::Fixed(width))
         .height(Length::Fixed(28.0))
         .center(Length::Fill)
@@ -385,7 +385,7 @@ fn zoom_display<'a, Message: 'a>(
                 text(zoom_text)
                     .size(theme.typography.caption)
                     .font(theme.typography.ui_regular())
-                    .color(theme.colors.text_primary),
+                    .color(theme.colors.status_fg),
             )
             .width(Length::Fill)
             .align_x(iced::alignment::Horizontal::Center),
@@ -393,7 +393,7 @@ fn zoom_display<'a, Message: 'a>(
                 IconKind::ChevronDown,
                 10.0,
                 10.0,
-                theme.colors.text_primary,
+                theme.colors.status_fg,
             ))
             .width(Length::Fixed(14.0))
             .align_x(iced::alignment::Horizontal::Center),
@@ -405,7 +405,7 @@ fn zoom_display<'a, Message: 'a>(
     .padding([theme.spacing.xs, theme.spacing.xs])
     .style(move |_| {
         container::Style::default()
-            .background(Background::Color(theme.colors.panel_bg))
+            .background(Background::Color(theme.colors.status_bg))
             .border(Border::default().width(1).color(theme.colors.border_subtle))
     })
     .into()
