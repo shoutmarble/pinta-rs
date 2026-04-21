@@ -12,11 +12,13 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 
 - Workspace version: `0.1.11`
 - Branch: `main`
-- Upstream reference capture session: `../upstream-diagnostics-output/20260421-015138/`
+- Upstream reference capture session: `../upstream-diagnostics-output/20260421-020943/`
+- Current mock diagnostics session: `../pinta-rs-diagnostics-output/20260421-020437/`
 - Main upstream screenshot: `../pinta-upstream-window.png`
-- Latest retained mock screenshot before this note: `captures/pinta-rs-20260419-203253.png`
-- Latest compare bundle before this note: `compares/20260419-203259/`
-- Latest measured RMSE before this note: `124.7248`
+- Main mock screenshot: `../pinta-rs-window.png`
+- Latest comparison summary: `../ui-control-comparisons/summary.tsv`
+- Latest measured RMSE before this note: `174.5892`
+- Latest status bar RMSE before this note: `183.8355`
 - Best earlier RMSE mentioned in-session: `49.2716`
 
 ## Architecture Snapshot
@@ -93,13 +95,16 @@ Do not write logs, screenshots, crops, or compare outputs under `pinta-rs/` or `
   - previously retained toolbox and toolbar parity fixes.
   - interactive status-bar palette behavior with left/right foreground-background assignment,
   - a 10-slot recent-color grid,
-  - upstream-derived default status-bar palette colors and wider footer palette allocation.
+  - upstream-derived default status-bar palette colors rendered as a visible 24-color subset,
+  - a stacked 42x42 foreground/background current-color control,
+  - a footer row-height fix so the lower palette row is no longer clipped.
+- A later `19x19` footer tightening experiment regressed parity and was intentionally backed out; keep the current 24-color footer geometry unless a new pass measures better.
 
 ## Next Resume Steps
 
 1. Use `./tools/capture_parity_bundle.sh` as the default parity pass so upstream reflection, mock diagnostics, control crops, and full-window diffs refresh together.
-2. Freeze the current shell except for toolbox vertical spacing and icon scale.
-3. Review `../ui-control-comparisons/summary.tsv` first, then inspect the worst individual control diffs before changing layout tokens.
+2. Review `../ui-control-comparisons/summary.tsv` first, then inspect `statusbar`, `history-list`, and `layers-list` before changing any other layout tokens.
+3. Keep the 24-color visible subset and current stacked color-control layout unless a measured parity pass proves a better alternative.
 4. If RMSE improves further, refresh `docs/readme/pinta-rs-current.png` and consider a follow-up tag later.
 5. If RMSE regresses, keep the externalized diagnostics layout and back out only the visual tuning pass that caused the regression.
 6. If mock capture becomes inconsistent again, debug the internal screenshot/export path before trusting compare metrics.

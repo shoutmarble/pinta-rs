@@ -7,8 +7,9 @@
 ## Current Status
 
 - The mock app reproduces the main Pinta shell, toolbox, canvas scene, layers/history pads, and status bar.
-- The current screenshot in this README is generated locally from the running mock using `spectacle`.
+- The current screenshot in this README is copied from the latest workspace-root mock window capture produced by the parity tooling.
 - The paired upstream workspace was instrumented with diagnostics and screenshot hooks so the Rust mock can be compared against a real Pinta build instead of guessing from static screenshots.
+- The latest footer pass added real status-bar palette behavior, a stacked foreground/background color control, and a visible 24-color subset derived from upstream Pinta defaults.
 - Version `0.1.11` is the current workspace release snapshot, published through GitHub Releases rather than checked-in release artifacts.
 
 ## Release 0.1.11
@@ -125,7 +126,11 @@ PINTA_DIAGNOSTICS_DIR=$PWD/diagnostics dotnet run --project Pinta -- --debug ../
 
 The latest reference capture session currently used for comparison is under:
 
-- `../pinta-upstream/diagnostics/20260419-230608/`
+- `../upstream-diagnostics-output/20260421-020943/`
+
+The latest mock diagnostics session currently paired with that reflection snapshot is under:
+
+- `../pinta-rs-diagnostics-output/20260421-020437/`
 
 ## Comparing Mock vs Upstream
 
@@ -146,6 +151,12 @@ That refreshes:
 - `../pinta-upstream-reflection/`
 - `../pinta-rs-diagnostics-output/`
 - `../ui-control-comparisons/`
+
+The reflection snapshot and comparison bundle are the main review surfaces:
+
+- `../pinta-upstream-reflection/` holds the latest upstream widget-tree dumps, bounds files, and per-control screenshots.
+- `../ui-control-comparisons/summary.tsv` is the first place to check when deciding which controls regressed or improved.
+- `../ui-control-comparisons/upstream/` and `../ui-control-comparisons/mock/` contain one crop per compared control.
 
 For a narrower legacy diff against one specific capture pair, the older compare script is still available:
 
@@ -182,4 +193,4 @@ pinta-rs/
 
 - This repository is currently a parity-oriented mock and tooling workspace, not a full editor implementation.
 - The upstream C# application remains the behavior reference.
-- The Rust workspace exists to explore what a Pinta port could look like in Rust + Iced while keeping the iteration loop grounded in local captures.
+- The Rust workspace exists to explore what a Pinta port could look like in Rust + Iced while keeping the iteration loop grounded in local reflection snapshots, mock window captures, and per-control comparison artifacts.
