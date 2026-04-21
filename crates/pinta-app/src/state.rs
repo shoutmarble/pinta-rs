@@ -3,6 +3,18 @@ use pinta_theme::PintaTheme;
 use pinta_ui::widgets::{canvas_viewport::ViewportState, icon::IconKind};
 use std::env;
 
+pub type PaletteColor = [u8; 3];
+
+pub const DEFAULT_PRIMARY_COLOR: PaletteColor = [0x00, 0x00, 0x00];
+pub const DEFAULT_SECONDARY_COLOR: PaletteColor = [0xFF, 0xFF, 0xFF];
+pub const MAX_RECENT_COLORS: usize = 10;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PaletteTarget {
+    Primary,
+    Secondary,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ToolKind {
     MoveSelectedPixels,
@@ -143,6 +155,9 @@ pub struct AppState {
     pub image_text: String,
     pub selection_text: String,
     pub lock_status_cursor: bool,
+    pub primary_color: PaletteColor,
+    pub secondary_color: PaletteColor,
+    pub recent_colors: Vec<PaletteColor>,
     pub history: Vec<String>,
     pub layers: Vec<String>,
     pub pencil_session: Option<PencilSession>,
@@ -170,6 +185,9 @@ impl Default for AppState {
             image_text: "800, 600".to_string(),
             selection_text: "0, 0, 0, 0".to_string(),
             lock_status_cursor,
+            primary_color: DEFAULT_PRIMARY_COLOR,
+            secondary_color: DEFAULT_SECONDARY_COLOR,
+            recent_colors: Vec::new(),
             history: vec!["Open Image".to_string()],
             layers: vec!["sample-input.png".to_string()],
             pencil_session: None,
@@ -177,5 +195,86 @@ impl Default for AppState {
                 active: matches!(env::var("PINTA_MOCK_TOOL_SCENARIO"), Ok(value) if value == "1"),
             },
         }
+    }
+}
+
+impl AppState {
+    pub fn set_palette_color(&mut self, target: PaletteTarget, color: PaletteColor) {
+        match target {
+            PaletteTarget::Primary => self.primary_color = color,
+            PaletteTarget::Secondary => self.secondary_color = color,
+        }
+
+        self.promote_recent_color(color);
+    }
+
+    pub fn swap_palette_colors(&mut self) {
+        std::mem::swap(&mut self.primary_color, &mut self.secondary_color);
+        self.promote_recent_color(self.primary_color);
+    }
+
+    pub fn reset_palette_colors(&mut self) {
+        self.primary_color = DEFAULT_PRIMARY_COLOR;
+        self.secondary_color = DEFAULT_SECONDARY_COLOR;
+        self.promote_recent_color(self.primary_color);
+    }
+
+    fn promote_recent_color(&mut self, color: PaletteColor) {
+        if let Some(index) = self.recent_colors.iter().position(|recent| *recent == color) {
+            self.recent_colors.remove(index);
+        }
+
+        self.recent_colors.insert(0, color);
+
+        if self.recent_colors.len() > MAX_RECENT_COLORS {
+            self.recent_colors.truncate(MAX_RECENT_COLORS);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{AppState, PaletteTarget, MAX_RECENT_COLORS};
+
+    #[test]
+    fn selecting_new_colors_prepends_and_truncates_recent_list() {
+        let mut state = AppState::default();
+
+        let colors = [
+            [0x01, 0x00, 0x00],
+            [0x02, 0x00, 0x00],
+            [0x03, 0x00, 0x00],
+            [0x04, 0x00, 0x00],
+            [0x05, 0x00, 0x00],
+            [0x06, 0x00, 0x00],
+            [0x07, 0x00, 0x00],
+            [0x08, 0x00, 0x00],
+            [0x09, 0x00, 0x00],
+            [0x0A, 0x00, 0x00],
+            [0x0B, 0x00, 0x00],
+        ];
+
+        for color in colors {
+            state.set_palette_color(PaletteTarget::Primary, color);
+        }
+
+        assert_eq!(state.recent_colors.len(), MAX_RECENT_COLORS);
+        assert_eq!(state.recent_colors[0], [0x0B, 0x00, 0x00]);
+        assert_eq!(state.recent_colors[9], [0x02, 0x00, 0x00]);
+    }
+
+    #[test]
+    fn selecting_existing_color_moves_it_to_front_without_duplication() {
+        let mut state = AppState::default();
+
+        state.set_palette_color(PaletteTarget::Primary, [0x10, 0x00, 0x00]);
+        state.set_palette_color(PaletteTarget::Primary, [0x20, 0x00, 0x00]);
+        state.set_palette_color(PaletteTarget::Secondary, [0x30, 0x00, 0x00]);
+        state.set_palette_color(PaletteTarget::Secondary, [0x20, 0x00, 0x00]);
+
+        assert_eq!(
+            state.recent_colors,
+            vec![[0x20, 0x00, 0x00], [0x30, 0x00, 0x00], [0x10, 0x00, 0x00]]
+        );
     }
 }

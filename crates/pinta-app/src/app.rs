@@ -15,6 +15,11 @@ pub fn title(state: &AppState) -> String {
 pub fn update(state: &mut AppState, message: AppMessage) -> Task<AppMessage> {
     match message {
         AppMessage::ToolSelected(tool) => state.active_tool = tool,
+        AppMessage::PaletteColorSelected { color, target } => {
+            state.set_palette_color(target, color)
+        }
+        AppMessage::PaletteSwapRequested => state.swap_palette_colors(),
+        AppMessage::PaletteResetRequested => state.reset_palette_colors(),
         AppMessage::CaptureFinished => {}
         AppMessage::CaptureRequested(request) => {
             let capture_request = request.clone();

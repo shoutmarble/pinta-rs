@@ -10,13 +10,13 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 
 ## Current Baseline
 
-- Workspace version: `0.1.10`
+- Workspace version: `0.1.11`
 - Branch: `main`
-- Upstream reference capture session: `../upstream-diagnostics-output/20260421-000153/`
+- Upstream reference capture session: `../upstream-diagnostics-output/20260421-015138/`
 - Main upstream screenshot: `../pinta-upstream-window.png`
 - Latest retained mock screenshot before this note: `captures/pinta-rs-20260419-203253.png`
 - Latest compare bundle before this note: `compares/20260419-203259/`
-- Latest measured RMSE before this note: `124.6424`
+- Latest measured RMSE before this note: `124.7248`
 - Best earlier RMSE mentioned in-session: `49.2716`
 
 ## Architecture Snapshot
@@ -91,6 +91,9 @@ Do not write logs, screenshots, crops, or compare outputs under `pinta-rs/` or `
   - narrower right dock width and more compact layer/history row content,
   - tighter toolbox row density and client-area compare normalization,
   - previously retained toolbox and toolbar parity fixes.
+  - interactive status-bar palette behavior with left/right foreground-background assignment,
+  - a 10-slot recent-color grid,
+  - upstream-derived default status-bar palette colors and wider footer palette allocation.
 
 ## Next Resume Steps
 

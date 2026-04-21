@@ -38,7 +38,7 @@ impl Default for Sizing {
             toolbox_button_size: 46,
             layer_row_height: 34,
             history_row_height: 24,
-            palette_lead_width: 388,
+            palette_lead_width: 420,
             palette_cell_size: 20,
             zoom_control_width: 96,
         }

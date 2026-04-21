@@ -187,10 +187,23 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
 
     let footer = status_bar::view(
         theme,
+        state.primary_color,
+        state.secondary_color,
+        state.recent_colors.as_slice(),
         state.cursor_text.clone(),
         state.image_text.clone(),
         state.selection_text.clone(),
         format!("{}%", state.zoom_percent),
+        |color| AppMessage::PaletteColorSelected {
+            color,
+            target: crate::state::PaletteTarget::Primary,
+        },
+        |color| AppMessage::PaletteColorSelected {
+            color,
+            target: crate::state::PaletteTarget::Secondary,
+        },
+        AppMessage::PaletteSwapRequested,
+        AppMessage::PaletteResetRequested,
     );
 
     let footer = container(column![
