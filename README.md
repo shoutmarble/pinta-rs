@@ -10,13 +10,13 @@
 - The current screenshot in this README is copied from the latest workspace-root mock window capture produced by the parity tooling.
 - The paired upstream workspace was instrumented with diagnostics and screenshot hooks so the Rust mock can be compared against a real Pinta build instead of guessing from static screenshots.
 - The latest footer pass added real status-bar palette behavior, a stacked foreground/background color control, and a visible 24-color subset derived from upstream Pinta defaults.
-- The latest typography pass now follows the effective upstream GTK font on this machine, which resolves to `Noto Sans 14` via GTK settings, while the text tool in upstream still seeds its font chooser from `Gtk.Settings.GtkFontName`.
-- The latest canvas/layout pass adds explicit viewport insets so reduced window widths keep clean canvas gutters instead of clipping into the left border.
-- Version `0.1.12` is the current workspace release snapshot, published through GitHub Releases rather than checked-in release artifacts.
+- The latest typography pass keeps the explicit `Noto Sans` family used for GTK parity on this machine without coupling that choice to unrelated widget palette changes.
+- The latest canvas/layout pass now keeps the zoomed canvas at full scale and clips the visible viewport when width is reduced, instead of shrinking the page to fit.
+- Version `0.1.13` is the current workspace release snapshot, published through GitHub Releases rather than checked-in release artifacts.
 
-## Release 0.1.12
+## Release 0.1.13
 
-- Git tag: `0.1.12`
+- Git tag: `0.1.13`
 - Release distribution: GitHub Releases for this repository
 - Resume notes for future LLM sessions: `VIBE_NOTES.md`
 
@@ -128,11 +128,11 @@ PINTA_DIAGNOSTICS_DIR=$PWD/diagnostics dotnet run --project Pinta -- --debug ../
 
 The latest reference capture session currently used for comparison is under:
 
-- `../upstream-diagnostics-output/20260421-023331/`
+- `../upstream-diagnostics-output/20260421-025520/`
 
 The latest mock diagnostics session currently paired with that reflection snapshot is under:
 
-- `../pinta-rs-diagnostics-output/20260421-023331/`
+- `../pinta-rs-diagnostics-output/20260421-025520/`
 
 ## Comparing Mock vs Upstream
 

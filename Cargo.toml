@@ -9,7 +9,7 @@ members = [
 [workspace.package]
 edition = "2024"
 license = "MIT"
-version = "0.1.12"
+version = "0.1.13"
 
 [workspace.dependencies]
 glam = "0.32.1"

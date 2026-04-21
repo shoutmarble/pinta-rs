@@ -109,69 +109,66 @@ impl Program<CanvasAction> for ViewportProgram {
     ) -> Vec<Geometry> {
         let mut frame = Frame::new(renderer, bounds.size());
         let surface_bounds = anchored_surface_rect(bounds.size(), self.state.surface_size());
-        let page = Path::rectangle(surface_bounds.position(), surface_bounds.size());
-        frame.fill(&page, self.theme.colors.canvas_page_bg);
-        frame.stroke(
-            &page,
-            Stroke::default()
-                .with_width(1.0)
-                .with_color(self.theme.colors.border_strong),
-        );
+        let clip_bounds = clipped_surface_rect(bounds.size(), surface_bounds);
 
-        let px = |x: f32| {
-            surface_bounds.x + surface_bounds.width * (x / self.state.viewport_size.0 as f32)
-        };
-        let py = |y: f32| {
-            surface_bounds.y + surface_bounds.height * (y / self.state.viewport_size.1 as f32)
-        };
-        let scale = surface_bounds.width / self.state.viewport_size.0 as f32;
-
-        let red_circle = Path::circle(Point::new(px(188.0), py(176.0)), 72.0 * scale);
-        frame.fill(&red_circle, iced::Color::from_rgb8(0xE0, 0x48, 0x3D));
-
-        let green_rect = Path::rectangle(
-            Point::new(px(318.0), py(108.0)),
-            Size::new(
-                surface_bounds.width * (274.0 / self.state.viewport_size.0 as f32),
-                surface_bounds.height * (122.0 / self.state.viewport_size.1 as f32),
-            ),
-        );
-        frame.fill(&green_rect, iced::Color::from_rgb8(0x5A, 0x8D, 0x4B));
-
-        let black_line = Path::line(
-            Point::new(px(96.0), py(492.0)),
-            Point::new(px(692.0), py(364.0)),
-        );
-        frame.stroke(
-            &black_line,
-            Stroke::default()
-                .with_width((8.0 * scale).max(3.0))
-                .with_color(iced::Color::from_rgb8(0x21, 0x21, 0x23)),
-        );
-
-        let wave = Path::new(|builder| {
-            builder.move_to(Point::new(px(110.0), py(318.0)));
-            builder.bezier_curve_to(
-                Point::new(px(218.0), py(178.0)),
-                Point::new(px(398.0), py(184.0)),
-                Point::new(px(503.0), py(324.0)),
+        frame.with_clip(clip_bounds, |frame| {
+            let page = Path::rectangle(surface_bounds.position(), surface_bounds.size());
+            frame.fill(&page, self.theme.colors.canvas_page_bg);
+            frame.stroke(
+                &page,
+                Stroke::default()
+                    .with_width(1.0)
+                    .with_color(self.theme.colors.border_strong),
             );
-            builder.bezier_curve_to(
-                Point::new(px(614.0), py(444.0)),
-                Point::new(px(700.0), py(448.0)),
-                Point::new(px(785.0), py(210.0)),
+
+            let px = |x: f32| surface_bounds.x + x * self.state.zoom;
+            let py = |y: f32| surface_bounds.y + y * self.state.zoom;
+            let scale = self.state.zoom;
+
+            let red_circle = Path::circle(Point::new(px(188.0), py(176.0)), 72.0 * scale);
+            frame.fill(&red_circle, iced::Color::from_rgb8(0xE0, 0x48, 0x3D));
+
+            let green_rect = Path::rectangle(
+                Point::new(px(318.0), py(108.0)),
+                Size::new(274.0 * scale, 122.0 * scale),
             );
+            frame.fill(&green_rect, iced::Color::from_rgb8(0x5A, 0x8D, 0x4B));
+
+            let black_line = Path::line(
+                Point::new(px(96.0), py(492.0)),
+                Point::new(px(692.0), py(364.0)),
+            );
+            frame.stroke(
+                &black_line,
+                Stroke::default()
+                    .with_width((8.0 * scale).max(3.0))
+                    .with_color(iced::Color::from_rgb8(0x21, 0x21, 0x23)),
+            );
+
+            let wave = Path::new(|builder| {
+                builder.move_to(Point::new(px(110.0), py(318.0)));
+                builder.bezier_curve_to(
+                    Point::new(px(218.0), py(178.0)),
+                    Point::new(px(398.0), py(184.0)),
+                    Point::new(px(503.0), py(324.0)),
+                );
+                builder.bezier_curve_to(
+                    Point::new(px(614.0), py(444.0)),
+                    Point::new(px(700.0), py(448.0)),
+                    Point::new(px(785.0), py(210.0)),
+                );
+            });
+            frame.stroke(
+                &wave,
+                Stroke::default()
+                    .with_width((8.0 * scale).max(3.0))
+                    .with_color(iced::Color::from_rgb8(0x3F, 0x66, 0xB6)),
+            );
+
+            if self.scripted_effect {
+                draw_scripted_effect(frame, self.active_tool, &self.state, surface_bounds);
+            }
         });
-        frame.stroke(
-            &wave,
-            Stroke::default()
-                .with_width((8.0 * scale).max(3.0))
-                .with_color(iced::Color::from_rgb8(0x3F, 0x66, 0xB6)),
-        );
-
-        if self.scripted_effect {
-            draw_scripted_effect(&mut frame, self.active_tool, &self.state, surface_bounds);
-        }
 
         vec![frame.into_geometry()]
     }
@@ -184,6 +181,7 @@ impl Program<CanvasAction> for ViewportProgram {
         cursor: mouse::Cursor,
     ) -> Option<Action<CanvasAction>> {
         let surface_bounds = anchored_surface_rect(bounds.size(), self.state.surface_size());
+        let clipped_bounds = clipped_surface_rect(bounds.size(), surface_bounds);
 
         match event {
             Event::Mouse(mouse::Event::CursorMoved { position }) => {
@@ -191,7 +189,7 @@ impl Program<CanvasAction> for ViewportProgram {
                     position.x as f64 - surface_bounds.x as f64,
                     position.y as f64 - surface_bounds.y as f64,
                 );
-                if surface_bounds.contains(Point::new(position.x, position.y)) {
+                if clipped_bounds.contains(Point::new(position.x, position.y)) {
                     Some(Action::publish(CanvasAction::CursorMoved(local)).and_capture())
                 } else {
                     None
@@ -199,7 +197,7 @@ impl Program<CanvasAction> for ViewportProgram {
             }
             Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
                 if let Some(position) = cursor.position_in(bounds) {
-                    if surface_bounds.contains(position) {
+                    if clipped_bounds.contains(position) {
                         let local = DVec2::new(
                             position.x as f64 - surface_bounds.x as f64,
                             position.y as f64 - surface_bounds.y as f64,
@@ -214,7 +212,7 @@ impl Program<CanvasAction> for ViewportProgram {
             }
             Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
                 if let Some(position) = cursor.position_in(bounds) {
-                    if surface_bounds.contains(position) {
+                    if clipped_bounds.contains(position) {
                         let local = DVec2::new(
                             position.x as f64 - surface_bounds.x as f64,
                             position.y as f64 - surface_bounds.y as f64,
@@ -234,7 +232,7 @@ impl Program<CanvasAction> for ViewportProgram {
                 };
 
                 if let Some(position) = cursor.position_in(bounds) {
-                    if surface_bounds.contains(position) {
+                    if clipped_bounds.contains(position) {
                         let local = DVec2::new(
                             position.x as f64 - surface_bounds.x as f64,
                             position.y as f64 - surface_bounds.y as f64,
@@ -377,11 +375,8 @@ fn anchored_surface_rect(bounds: Size, surface: Size) -> Rectangle {
     let safe_width = (bounds.width - SURFACE_INSET_X * 2.0).max(1.0);
     let safe_height = (bounds.height - SURFACE_INSET_Y_TOP - SURFACE_INSET_Y_BOTTOM).max(1.0);
 
-    let width = surface.width.min(safe_width);
-    let height = surface.height.min(safe_height);
-
-    let extra_width = (safe_width - width).max(0.0);
-    let extra_height = (safe_height - height).max(0.0);
+    let extra_width = (safe_width - surface.width).max(0.0);
+    let extra_height = (safe_height - surface.height).max(0.0);
 
     let x = SURFACE_INSET_X + extra_width.min(8.0);
     let y = SURFACE_INSET_Y_TOP + extra_height.min(64.0);
@@ -389,29 +384,60 @@ fn anchored_surface_rect(bounds: Size, surface: Size) -> Rectangle {
     Rectangle {
         x,
         y,
-        width,
-        height,
+        width: surface.width,
+        height: surface.height,
+    }
+}
+
+fn clipped_surface_rect(bounds: Size, surface_bounds: Rectangle) -> Rectangle {
+    let clip_region = Rectangle {
+        x: SURFACE_INSET_X,
+        y: SURFACE_INSET_Y_TOP,
+        width: (bounds.width - SURFACE_INSET_X * 2.0).max(1.0),
+        height: (bounds.height - SURFACE_INSET_Y_TOP - SURFACE_INSET_Y_BOTTOM).max(1.0),
+    };
+
+    let left = surface_bounds.x.max(clip_region.x);
+    let top = surface_bounds.y.max(clip_region.y);
+    let right = (surface_bounds.x + surface_bounds.width).min(clip_region.x + clip_region.width);
+    let bottom = (surface_bounds.y + surface_bounds.height).min(clip_region.y + clip_region.height);
+
+    Rectangle {
+        x: left,
+        y: top,
+        width: (right - left).max(0.0),
+        height: (bottom - top).max(0.0),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::anchored_surface_rect;
+    use super::{anchored_surface_rect, clipped_surface_rect};
     use iced::Size;
 
     #[test]
-    fn anchored_surface_keeps_left_gutter_when_width_is_tight() {
+    fn anchored_surface_keeps_zoomed_width_when_width_is_tight() {
         let rect = anchored_surface_rect(Size::new(180.0, 300.0), Size::new(688.0, 516.0));
 
         assert!(rect.x >= 12.0);
-        assert!(rect.width <= 156.0);
+        assert_eq!(rect.width, 688.0);
+    }
+
+    #[test]
+    fn clipped_surface_limits_visible_width_when_width_is_tight() {
+        let surface = anchored_surface_rect(Size::new(180.0, 300.0), Size::new(688.0, 516.0));
+        let clipped = clipped_surface_rect(Size::new(180.0, 300.0), surface);
+
+        assert!(clipped.x >= 12.0);
+        assert!(clipped.width <= 156.0);
     }
 
     #[test]
     fn anchored_surface_respects_top_and_bottom_insets() {
-        let rect = anchored_surface_rect(Size::new(400.0, 180.0), Size::new(300.0, 516.0));
+        let surface = anchored_surface_rect(Size::new(400.0, 180.0), Size::new(300.0, 516.0));
+        let clipped = clipped_surface_rect(Size::new(400.0, 180.0), surface);
 
-        assert!(rect.y >= 18.0);
-        assert!(rect.height <= 150.0);
+        assert!(surface.y >= 18.0);
+        assert!(clipped.height <= 150.0);
     }
 }

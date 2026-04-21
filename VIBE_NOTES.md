@@ -10,14 +10,14 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 
 ## Current Baseline
 
-- Workspace version: `0.1.12`
+- Workspace version: `0.1.13`
 - Branch: `main`
-- Upstream reference capture session: `../upstream-diagnostics-output/20260421-023331/`
-- Current mock diagnostics session: `../pinta-rs-diagnostics-output/20260421-023331/`
+- Upstream reference capture session: `../upstream-diagnostics-output/20260421-025520/`
+- Current mock diagnostics session: `../pinta-rs-diagnostics-output/20260421-025520/`
 - Main upstream screenshot: `../pinta-upstream-window.png`
 - Main mock screenshot: `../pinta-rs-window.png`
 - Latest comparison summary: `../ui-control-comparisons/summary.tsv`
-- Latest measured RMSE before this note: `129.4195`
+- Latest measured RMSE before this note: `129.4223`
 - Latest status bar RMSE before this note: `84.4771`
 - Best earlier RMSE mentioned in-session: `49.2716`
 
@@ -102,8 +102,8 @@ Do not write logs, screenshots, crops, or compare outputs under `pinta-rs/` or `
 - The current pass also retained:
   - bounds-based major-control compare crops with RGBA flattening in `tools/build_ui_comparisons.py`,
   - right-sidebar and status-bar shell darkening that materially reduced the control RMSE scores,
-  - typography normalization to the effective upstream GTK font on this machine (`Noto Sans 14`),
-  - canvas viewport inset math and tests so narrow window widths preserve a left gutter instead of clipping the page into the border.
+  - explicit `Noto Sans` UI typography for GTK-font parity without changing the palette path,
+  - canvas viewport inset math and tests plus zoomed-surface clipping so narrow window widths stop rescaling the page and instead crop the visible viewport like upstream.
 - A later `19x19` footer tightening experiment regressed parity and was intentionally backed out; keep the current 24-color footer geometry unless a new pass measures better.
 
 ## Next Resume Steps
