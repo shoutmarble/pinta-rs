@@ -1,9 +1,10 @@
-use iced::widget::{column, container, mouse_area, row, text};
+use iced::widget::{column, container, mouse_area, row, stack, text};
 use iced::{Background, Border, Element, Length, mouse};
 use pinta_theme::PintaTheme;
 
 use crate::widgets::icon::{self, IconKind};
 
+const CURRENT_COLOR_CONTROL_SIZE: f32 = 42.0;
 const PALETTE_ROW_HEIGHT: f32 = 20.0;
 const PALETTE_ROW_GAP: f32 = 2.0;
 const PALETTE_BLOCK_HEIGHT: f32 = (PALETTE_ROW_HEIGHT * 2.0) + PALETTE_ROW_GAP;
@@ -78,7 +79,7 @@ pub fn view<'a, Message: Clone + 'a>(
         metric_text(theme, cursor_text),
     ]
     .spacing(theme.spacing.md)
-    .padding([4.0, theme.spacing.md])
+    .padding([2.0, theme.spacing.md])
     .align_y(iced::Alignment::Center);
 
     if selection_text != "0, 0, 0, 0" {
@@ -237,35 +238,39 @@ fn color_stack_panel<'a, Message: Clone + 'a>(
     on_swap: Message,
     on_reset: Message,
 ) -> Element<'a, Message> {
-    let back = swatch(theme, secondary_color, 24.0, 24.0);
-    let front = swatch(theme, primary_color, 24.0, 24.0);
-
-    let stacked = container(
-        column![
-            row![container(back).width(Length::Fixed(30.0))],
-            row![container(front).width(Length::Fixed(30.0))],
-        ]
-        .spacing(-12.0),
-    )
-    .width(Length::Fixed(36.0))
-    .height(Length::Fixed(PALETTE_BLOCK_HEIGHT));
-
-    let actions = container(
-        column![
-            color_action_button(theme, IconKind::ColorSwap, on_swap),
-            color_action_button(theme, IconKind::ColorReset, on_reset),
-        ]
-        .spacing(12.0),
-    )
-    .height(Length::Fixed(PALETTE_BLOCK_HEIGHT))
-    .align_y(iced::alignment::Vertical::Center);
-
-    row![
-        stacked,
-        actions,
+    stack![
+        empty_recent_swatch(theme, CURRENT_COLOR_CONTROL_SIZE, CURRENT_COLOR_CONTROL_SIZE),
+        positioned_layer(
+            current_color_swatch(theme, secondary_color),
+            17.0,
+            16.0,
+            24.0,
+            24.0,
+        ),
+        positioned_layer(
+            current_color_swatch(theme, primary_color),
+            4.0,
+            3.0,
+            24.0,
+            24.0,
+        ),
+        positioned_layer(
+            color_action_button(theme, IconKind::ColorSwap, on_swap, 15.0, 15.0),
+            27.0,
+            2.0,
+            15.0,
+            15.0,
+        ),
+        positioned_layer(
+            color_action_button(theme, IconKind::ColorReset, on_reset, 15.0, 15.0),
+            2.0,
+            27.0,
+            15.0,
+            15.0,
+        ),
     ]
-    .spacing(theme.spacing.xs)
-    .align_y(iced::Alignment::Center)
+    .width(Length::Fixed(CURRENT_COLOR_CONTROL_SIZE))
+    .height(Length::Fixed(CURRENT_COLOR_CONTROL_SIZE))
     .into()
 }
 
@@ -273,16 +278,61 @@ fn color_action_button<'a, Message: Clone + 'a>(
     theme: &'a PintaTheme,
     icon_kind: IconKind,
     on_press: Message,
+    width: f32,
+    height: f32,
 ) -> Element<'a, Message> {
     mouse_area(
         container(icon::view(icon_kind, 10.0, 10.0, theme.colors.text_muted))
-            .width(Length::Fixed(18.0))
-            .height(Length::Fixed(15.0))
+            .width(Length::Fixed(width))
+            .height(Length::Fixed(height))
             .align_x(iced::alignment::Horizontal::Center)
             .align_y(iced::alignment::Vertical::Center),
     )
     .on_press(on_press)
     .interaction(mouse::Interaction::Pointer)
+    .into()
+}
+
+fn current_color_swatch<'a, Message: 'a>(
+    _theme: &'a PintaTheme,
+    rgb: [u8; 3],
+) -> Element<'a, Message> {
+    container(container(text("")).width(Length::Fill).height(Length::Fill).style(
+        move |_| {
+            container::Style::default().background(Background::Color(iced::Color::from_rgb8(
+                rgb[0], rgb[1], rgb[2],
+            )))
+        },
+    ))
+    .width(Length::Fixed(24.0))
+    .height(Length::Fixed(24.0))
+    .padding(1.0)
+    .style(move |_| {
+        container::Style::default()
+            .background(Background::Color(iced::Color::WHITE))
+            .border(Border::default().width(1).color(iced::Color::BLACK))
+    })
+    .into()
+}
+
+fn positioned_layer<'a, Message: 'a>(
+    child: Element<'a, Message>,
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+) -> Element<'a, Message> {
+    container(column![
+        container(text("")).height(Length::Fixed(y)),
+        row![
+            container(text("")).width(Length::Fixed(x)),
+            container(child)
+                .width(Length::Fixed(width))
+                .height(Length::Fixed(height)),
+        ]
+    ])
+    .width(Length::Fixed(CURRENT_COLOR_CONTROL_SIZE))
+    .height(Length::Fixed(CURRENT_COLOR_CONTROL_SIZE))
     .into()
 }
 
