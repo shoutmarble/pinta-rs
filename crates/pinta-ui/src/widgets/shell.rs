@@ -66,7 +66,7 @@ pub fn title_bar<'a, Message: 'a>(
             leading,
             container(
                 text(format!("{} - Pinta", model.document_title))
-                    .size(theme.typography.toolbar)
+                    .size(theme.typography.title)
                     .font(theme.typography.ui_medium())
                     .color(theme.colors.text_primary),
             )
@@ -88,26 +88,28 @@ pub fn title_bar<'a, Message: 'a>(
     .into()
 }
 
+fn toolbar_label<'a, Message: 'a>(theme: &'a PintaTheme, label: &'a str) -> Element<'a, Message> {
+    container(
+        text(label)
+            .size(theme.typography.toolbar)
+            .font(theme.typography.ui_regular())
+            .color(theme.colors.text_primary),
+    )
+    .center_y(Length::Fill)
+    .into()
+}
+
 pub fn tool_options_bar<'a, Message: 'a>(
     theme: &'a PintaTheme,
     model: ToolOptionsBar<'a>,
 ) -> Element<'a, Message> {
     container(
         row![
-            text(model.tool_label)
-                .size(theme.typography.toolbar)
-                .font(theme.typography.ui_regular())
-                .color(theme.colors.text_primary),
+            toolbar_label(theme, model.tool_label),
             toolbar_icon(theme, model.tool_icon, false),
-            text(model.value_label)
-                .size(theme.typography.toolbar)
-                .font(theme.typography.ui_regular())
-                .color(theme.colors.text_primary),
+            toolbar_label(theme, model.value_label),
             segmented_value(theme, model.value),
-            text(model.mode_label)
-                .size(theme.typography.toolbar)
-                .font(theme.typography.ui_regular())
-                .color(theme.colors.text_primary),
+            toolbar_label(theme, model.mode_label),
             dropdown_chip(theme, model.mode_value, model.mode_width),
             icon_dropdown_chip(theme, model.shape_icon, model.shape_width),
         ]
@@ -207,8 +209,8 @@ fn toolbar_icon<'a, Message: 'a>(
     };
 
     container(icon::view(icon_kind, 19.0, 19.0, icon_color))
-        .width(Length::Fixed(22.0))
-        .height(Length::Fixed(22.0))
+        .width(Length::Fixed(24.0))
+        .height(Length::Fixed(24.0))
         .align_x(Horizontal::Center)
         .align_y(Vertical::Center)
         .into()
@@ -247,8 +249,8 @@ fn segmented_value<'a, Message: 'a>(theme: &'a PintaTheme, value: u32) -> Elemen
         ]
         .align_y(Alignment::Center),
     )
-    .width(Length::Fixed(168.0))
-    .height(Length::Fixed(34.0))
+    .width(Length::Fixed(164.0))
+    .height(Length::Fixed(32.0))
     .padding([0.0, theme.spacing.sm])
     .style(move |_| {
         container::Style::default()
@@ -270,7 +272,7 @@ fn stepper_button<'a, Message: 'a>(theme: &'a PintaTheme, label: &'a str) -> Ele
             .font(theme.typography.ui_medium())
             .color(theme.colors.text_primary),
     )
-    .width(Length::Fixed(26.0))
+    .width(Length::Fixed(28.0))
     .center(Length::Fill)
     .style(move |_| {
         container::Style::default()
@@ -296,7 +298,7 @@ fn dropdown_chip<'a, Message: 'a>(
         .align_y(Alignment::Center),
     )
     .width(Length::Fixed(width))
-    .height(Length::Fixed(34.0))
+    .height(Length::Fixed(32.0))
     .padding([0.0, theme.spacing.sm])
     .style(move |_| {
         container::Style::default()
@@ -325,7 +327,7 @@ fn icon_dropdown_chip<'a, Message: 'a>(
         .align_y(Alignment::Center),
     )
     .width(Length::Fixed(width))
-    .height(Length::Fixed(34.0))
+    .height(Length::Fixed(32.0))
     .padding([0.0, theme.spacing.sm])
     .style(move |_| {
         container::Style::default()

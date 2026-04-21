@@ -10,13 +10,13 @@
 - The current screenshot in this README is copied from the latest workspace-root mock window capture produced by the parity tooling.
 - The paired upstream workspace was instrumented with diagnostics and screenshot hooks so the Rust mock can be compared against a real Pinta build instead of guessing from static screenshots.
 - The latest footer pass added real status-bar palette behavior, a stacked foreground/background color control, and a visible 24-color subset derived from upstream Pinta defaults.
-- The latest typography pass keeps the explicit `Noto Sans` family used for GTK parity on this machine without coupling that choice to unrelated widget palette changes.
-- The latest canvas/layout pass now keeps the zoomed canvas at full scale and clips the visible viewport when width is reduced, instead of shrinking the page to fit.
-- Version `0.1.13` is the current workspace release snapshot, published through GitHub Releases rather than checked-in release artifacts.
+- The latest shell pass retunes the title bar, tool options, dock chrome, and palette controls toward the upstream dark GTK layout, with tighter centering and smaller control text where appropriate.
+- The latest canvas/layout pass keeps the zoomed canvas at full scale and clips the visible viewport when width is reduced, instead of shrinking the page to fit.
+- Version `0.1.14` is the current workspace release snapshot, published through GitHub Releases rather than checked-in release artifacts.
 
-## Release 0.1.13
+## Release 0.1.14
 
-- Git tag: `0.1.13`
+- Git tag: `0.1.14`
 - Release distribution: GitHub Releases for this repository
 - Resume notes for future LLM sessions: `VIBE_NOTES.md`
 

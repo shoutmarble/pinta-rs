@@ -10,7 +10,7 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 
 ## Current Baseline
 
-- Workspace version: `0.1.13`
+- Workspace version: `0.1.14`
 - Branch: `main`
 - Upstream reference capture session: `../upstream-diagnostics-output/20260421-025520/`
 - Current mock diagnostics session: `../pinta-rs-diagnostics-output/20260421-025520/`
@@ -104,6 +104,10 @@ Do not write logs, screenshots, crops, or compare outputs under `pinta-rs/` or `
   - right-sidebar and status-bar shell darkening that materially reduced the control RMSE scores,
   - explicit `Noto Sans` UI typography for GTK-font parity without changing the palette path,
   - canvas viewport inset math and tests plus zoomed-surface clipping so narrow window widths stop rescaling the page and instead crop the visible viewport like upstream.
+- The current pass also added:
+  - a darker title bar and dock chrome aligned with upstream's GTK styling,
+  - smaller toolbar/control typography and tighter control heights for better vertical centering,
+  - darker control fill, hover, and selection tokens so the mock no longer reads as a light app shell.
 - A later `19x19` footer tightening experiment regressed parity and was intentionally backed out; keep the current 24-color footer geometry unless a new pass measures better.
 
 ## Next Resume Steps

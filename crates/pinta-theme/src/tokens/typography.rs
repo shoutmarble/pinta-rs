@@ -16,10 +16,10 @@ impl Default for Typography {
     fn default() -> Self {
         Self {
             title: 14.0,
-            panel_title: 14.0,
-            body: 14.0,
-            caption: 14.0,
-            toolbar: 14.0,
+            panel_title: 13.0,
+            body: 12.0,
+            caption: 11.0,
+            toolbar: 12.0,
         }
     }
 }
