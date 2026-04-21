@@ -10,15 +10,15 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 
 ## Current Baseline
 
-- Workspace version: `0.1.11`
+- Workspace version: `0.1.12`
 - Branch: `main`
-- Upstream reference capture session: `../upstream-diagnostics-output/20260421-020943/`
-- Current mock diagnostics session: `../pinta-rs-diagnostics-output/20260421-020437/`
+- Upstream reference capture session: `../upstream-diagnostics-output/20260421-023331/`
+- Current mock diagnostics session: `../pinta-rs-diagnostics-output/20260421-023331/`
 - Main upstream screenshot: `../pinta-upstream-window.png`
 - Main mock screenshot: `../pinta-rs-window.png`
 - Latest comparison summary: `../ui-control-comparisons/summary.tsv`
-- Latest measured RMSE before this note: `174.5892`
-- Latest status bar RMSE before this note: `183.8355`
+- Latest measured RMSE before this note: `129.4195`
+- Latest status bar RMSE before this note: `84.4771`
 - Best earlier RMSE mentioned in-session: `49.2716`
 
 ## Architecture Snapshot
@@ -38,6 +38,7 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 - Mock screenshots are now captured internally via Iced `window::screenshot()` and written atomically by the app; this avoids active-window focus drift from `spectacle --activewindow`.
 - The compare script now crops external window screenshots down to client area before scoring, so the new internal mock captures are comparable again.
 - Canonical parity artifacts now belong in the workspace root, not inside `pinta-rs/` or `pinta-upstream/`.
+- Upstream general UI typography is not hardcoded in app CSS; it inherits the active GTK font, and on this machine that resolves to `Noto Sans 14`. Upstream text-tool font defaults still come from `Gtk.Settings.GtkFontName`.
 
 ## Where The Upstream Hooks Live
 
@@ -98,17 +99,23 @@ Do not write logs, screenshots, crops, or compare outputs under `pinta-rs/` or `
   - upstream-derived default status-bar palette colors rendered as a visible 24-color subset,
   - a stacked 42x42 foreground/background current-color control,
   - a footer row-height fix so the lower palette row is no longer clipped.
+- The current pass also retained:
+  - bounds-based major-control compare crops with RGBA flattening in `tools/build_ui_comparisons.py`,
+  - right-sidebar and status-bar shell darkening that materially reduced the control RMSE scores,
+  - typography normalization to the effective upstream GTK font on this machine (`Noto Sans 14`),
+  - canvas viewport inset math and tests so narrow window widths preserve a left gutter instead of clipping the page into the border.
 - A later `19x19` footer tightening experiment regressed parity and was intentionally backed out; keep the current 24-color footer geometry unless a new pass measures better.
 
 ## Next Resume Steps
 
 1. Use `./tools/capture_parity_bundle.sh` as the default parity pass so upstream reflection, mock diagnostics, control crops, and full-window diffs refresh together.
-2. Review `../ui-control-comparisons/summary.tsv` first, then inspect `statusbar`, `history-list`, and `layers-list` before changing any other layout tokens.
+2. Review `../ui-control-comparisons/summary.tsv` first, then inspect `history-list`, `layers-list`, and `statusbar` against the raw mock diagnostics crops before assuming the compare bundle is fully current.
 3. Keep the 24-color visible subset and current stacked color-control layout unless a measured parity pass proves a better alternative.
-4. If RMSE improves further, refresh `docs/readme/pinta-rs-current.png` and consider a follow-up tag later.
-5. If RMSE regresses, keep the externalized diagnostics layout and back out only the visual tuning pass that caused the regression.
-6. If mock capture becomes inconsistent again, debug the internal screenshot/export path before trusting compare metrics.
-7. After visual tuning, move from parity mock work toward real editor behaviors one surface at a time.
+4. If typography drifts again, verify the effective GTK font first instead of assuming the icon resources imply the control font.
+5. If RMSE improves further, refresh `docs/readme/pinta-rs-current.png` and consider a follow-up tag later.
+6. If RMSE regresses, keep the externalized diagnostics layout and back out only the visual tuning pass that caused the regression.
+7. If mock capture becomes inconsistent again, debug the internal screenshot/export path before trusting compare metrics.
+8. After visual tuning, move from parity mock work toward real editor behaviors one surface at a time.
 
 ## Quick Commands
 

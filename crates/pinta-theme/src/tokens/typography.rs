@@ -15,11 +15,11 @@ pub struct Typography {
 impl Default for Typography {
     fn default() -> Self {
         Self {
-            title: 13.0,
-            panel_title: 12.0,
-            body: 12.0,
-            caption: 11.0,
-            toolbar: 12.0,
+            title: 14.0,
+            panel_title: 14.0,
+            body: 14.0,
+            caption: 14.0,
+            toolbar: 14.0,
         }
     }
 }
@@ -27,7 +27,7 @@ impl Default for Typography {
 impl Typography {
     pub fn ui_regular(&self) -> Font {
         Font {
-            family: Family::Name("Adwaita Sans"),
+            family: Family::Name("Noto Sans"),
             weight: Weight::Normal,
             ..Font::DEFAULT
         }
@@ -35,7 +35,7 @@ impl Typography {
 
     pub fn ui_medium(&self) -> Font {
         Font {
-            family: Family::Name("Adwaita Sans"),
+            family: Family::Name("Noto Sans"),
             weight: Weight::Medium,
             ..Font::DEFAULT
         }

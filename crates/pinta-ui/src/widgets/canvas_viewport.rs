@@ -7,6 +7,10 @@ use pinta_theme::PintaTheme;
 
 use crate::widgets::icon::IconKind;
 
+const SURFACE_INSET_X: f32 = 12.0;
+const SURFACE_INSET_Y_TOP: f32 = 18.0;
+const SURFACE_INSET_Y_BOTTOM: f32 = 12.0;
+
 #[derive(Debug, Clone)]
 pub struct ViewportState {
     pub viewport_size: (u32, u32),
@@ -128,8 +132,8 @@ impl Program<CanvasAction> for ViewportProgram {
         let green_rect = Path::rectangle(
             Point::new(px(318.0), py(108.0)),
             Size::new(
-                bounds.width * (274.0 / self.state.viewport_size.0 as f32),
-                bounds.height * (122.0 / self.state.viewport_size.1 as f32),
+                surface_bounds.width * (274.0 / self.state.viewport_size.0 as f32),
+                surface_bounds.height * (122.0 / self.state.viewport_size.1 as f32),
             ),
         );
         frame.fill(&green_rect, iced::Color::from_rgb8(0x5A, 0x8D, 0x4B));
@@ -370,15 +374,44 @@ fn draw_scripted_effect(frame: &mut Frame, active_tool: IconKind, state: &Viewpo
 }
 
 fn anchored_surface_rect(bounds: Size, surface: Size) -> Rectangle {
-    let extra_width = (bounds.width - surface.width).max(0.0);
-    let extra_height = (bounds.height - surface.height).max(0.0);
-    let x = extra_width.min(20.0);
-    let y = extra_height.min(82.0);
+    let safe_width = (bounds.width - SURFACE_INSET_X * 2.0).max(1.0);
+    let safe_height = (bounds.height - SURFACE_INSET_Y_TOP - SURFACE_INSET_Y_BOTTOM).max(1.0);
+
+    let width = surface.width.min(safe_width);
+    let height = surface.height.min(safe_height);
+
+    let extra_width = (safe_width - width).max(0.0);
+    let extra_height = (safe_height - height).max(0.0);
+
+    let x = SURFACE_INSET_X + extra_width.min(8.0);
+    let y = SURFACE_INSET_Y_TOP + extra_height.min(64.0);
 
     Rectangle {
         x,
         y,
-        width: surface.width.min(bounds.width),
-        height: surface.height.min(bounds.height),
+        width,
+        height,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::anchored_surface_rect;
+    use iced::Size;
+
+    #[test]
+    fn anchored_surface_keeps_left_gutter_when_width_is_tight() {
+        let rect = anchored_surface_rect(Size::new(180.0, 300.0), Size::new(688.0, 516.0));
+
+        assert!(rect.x >= 12.0);
+        assert!(rect.width <= 156.0);
+    }
+
+    #[test]
+    fn anchored_surface_respects_top_and_bottom_insets() {
+        let rect = anchored_surface_rect(Size::new(400.0, 180.0), Size::new(300.0, 516.0));
+
+        assert!(rect.y >= 18.0);
+        assert!(rect.height <= 150.0);
     }
 }
