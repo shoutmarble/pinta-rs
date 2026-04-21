@@ -10,13 +10,13 @@ This file exists to resume the VIBE-coded Rust port mock of Pinta without needin
 
 ## Current Baseline
 
-- Workspace version: `0.1.9`
+- Workspace version: `0.1.10`
 - Branch: `main`
-- Upstream reference capture session: `../upstream-diagnostics-output/20260420-181305/`
+- Upstream reference capture session: `../upstream-diagnostics-output/20260421-000153/`
 - Main upstream screenshot: `../pinta-upstream-window.png`
 - Latest retained mock screenshot before this note: `captures/pinta-rs-20260419-203253.png`
 - Latest compare bundle before this note: `compares/20260419-203259/`
-- Latest measured RMSE before this note: `48.3335`
+- Latest measured RMSE before this note: `124.6424`
 - Best earlier RMSE mentioned in-session: `49.2716`
 
 ## Architecture Snapshot

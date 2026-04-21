@@ -4,6 +4,28 @@ use pinta_theme::PintaTheme;
 
 use crate::widgets::icon::{self, IconKind};
 
+const QUICK_PALETTE_GRAYSCALE: [[u8; 3]; 4] = [
+    [0x6D, 0x6D, 0x6D],
+    [0x8B, 0x8B, 0x8B],
+    [0xB5, 0xB5, 0xB5],
+    [0xD6, 0xD6, 0xD6],
+];
+
+const QUICK_PALETTE_SPECTRUM: [[u8; 3]; 12] = [
+    [0xFF, 0x2B, 0x20],
+    [0xFF, 0x7D, 0x14],
+    [0xFF, 0xCF, 0x11],
+    [0xB5, 0xFA, 0x18],
+    [0x37, 0xF0, 0x1D],
+    [0x16, 0xD8, 0x4F],
+    [0x22, 0xDA, 0xD7],
+    [0x22, 0x89, 0xF0],
+    [0x2C, 0x35, 0xF0],
+    [0x8D, 0x25, 0xE8],
+    [0xEA, 0x20, 0xF0],
+    [0xFF, 0x2F, 0xA9],
+];
+
 pub fn view<'a, Message: 'a>(
     theme: &'a PintaTheme,
     cursor_text: String,
@@ -13,38 +35,7 @@ pub fn view<'a, Message: 'a>(
 ) -> Element<'a, Message> {
     let palette_lead = row![
         color_stack_panel(theme),
-        blank_chip(theme, 74.0),
-        swatch(theme, [0x00, 0x00, 0x00], 20.0, 20.0),
-        swatch_row(
-            theme,
-            &[
-                [0x6D, 0x6D, 0x6D],
-                [0x8B, 0x8B, 0x8B],
-                [0xB5, 0xB5, 0xB5],
-                [0xD6, 0xD6, 0xD6],
-            ],
-            16.0,
-            20.0,
-        ),
-        swatch_row(
-            theme,
-            &[
-                [0xFF, 0x2B, 0x20],
-                [0xFF, 0x7D, 0x14],
-                [0xFF, 0xCF, 0x11],
-                [0xB5, 0xFA, 0x18],
-                [0x37, 0xF0, 0x1D],
-                [0x16, 0xD8, 0x4F],
-                [0x22, 0xDA, 0xD7],
-                [0x22, 0x89, 0xF0],
-                [0x2C, 0x35, 0xF0],
-                [0x8D, 0x25, 0xE8],
-                [0xEA, 0x20, 0xF0],
-                [0xFF, 0x2F, 0xA9],
-            ],
-            14.0,
-            20.0,
-        ),
+        quick_palette_panel(theme),
     ]
     .spacing(theme.spacing.xs)
     .align_y(iced::Alignment::Center);
@@ -79,16 +70,45 @@ pub fn view<'a, Message: 'a>(
 
     content = content
         .push(metric_text(theme, image_text))
+        .push(container(text("")).width(Length::Fill))
         .push(container(zoom_controls).width(Length::Shrink));
 
     container(content)
         .width(Length::Fill)
-        .height(Length::Fixed(theme.sizing.footer_height as f32))
+        .height(Length::Fixed(
+            theme
+                .sizing
+                .footer_height
+                .saturating_sub(theme.sizing.footer_inset_top) as f32,
+        ))
         .style(move |_| {
             container::Style::default()
                 .background(Background::Color(theme.colors.status_bg))
                 .border(Border::default().width(1).color(theme.colors.border_subtle))
         })
+        .into()
+}
+
+fn quick_palette_panel<'a, Message: 'a>(theme: &'a PintaTheme) -> Element<'a, Message> {
+    let grid = column![
+        row![
+            blank_chip(theme, 52.0, 20.0),
+            swatch_row(theme, &QUICK_PALETTE_GRAYSCALE, 16.0, 20.0),
+        ]
+        .spacing(theme.spacing.xs)
+        .align_y(iced::Alignment::Center),
+        row![
+            swatch(theme, [0x00, 0x00, 0x00], 20.0, 20.0),
+            swatch_row(theme, &QUICK_PALETTE_SPECTRUM, 16.0, 20.0),
+        ]
+        .spacing(theme.spacing.xs)
+        .align_y(iced::Alignment::Center),
+    ]
+    .spacing(theme.spacing.xs / 2.0);
+
+    container(grid)
+        .width(Length::Shrink)
+        .height(Length::Shrink)
         .into()
 }
 
@@ -139,10 +159,10 @@ fn color_action_button<'a, Message: 'a>(
         .into()
 }
 
-fn blank_chip<'a, Message: 'a>(theme: &'a PintaTheme, width: f32) -> Element<'a, Message> {
+fn blank_chip<'a, Message: 'a>(theme: &'a PintaTheme, width: f32, height: f32) -> Element<'a, Message> {
     container(text(""))
         .width(Length::Fixed(width))
-        .height(Length::Fixed(32.0))
+        .height(Length::Fixed(height))
         .style(move |_| {
             container::Style::default().background(Background::Color(theme.colors.hover_bg))
         })
@@ -168,10 +188,10 @@ fn flat_control<'a, Message: 'a>(
     width: f32,
 ) -> Element<'a, Message> {
     container(icon::view(icon_kind, 12.0, 12.0, theme.colors.text_primary))
-    .width(Length::Fixed(width))
-    .height(Length::Fixed(28.0))
-    .center(Length::Fill)
-    .into()
+        .width(Length::Fixed(width))
+        .height(Length::Fixed(28.0))
+        .center(Length::Fill)
+        .into()
 }
 
 fn zoom_display<'a, Message: 'a>(

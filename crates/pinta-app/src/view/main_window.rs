@@ -144,7 +144,11 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
     )
     .into();
 
+    let sidebar_top_inset = theme.sizing.right_sidebar_top_inset as f32;
+    let sidebar_gap = theme.sizing.right_sidebar_gap as f32;
+
     let right_sidebar = column![
+        container(column![]).height(Length::Fixed(sidebar_top_inset)),
         container(pad::view(
             theme,
             "Layers",
@@ -160,7 +164,7 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
                 IconKind::More,
             ]
         ))
-        .height(Length::FillPortion(1)),
+        .height(Length::Fixed(theme.sizing.layers_pad_height as f32)),
         container(pad::view(
             theme,
             "History",
@@ -168,15 +172,15 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
             history_body,
             vec![IconKind::Undo, IconKind::Redo]
         ))
-        .height(Length::FillPortion(1)),
+        .height(Length::Fixed(theme.sizing.history_pad_height as f32)),
     ]
-    .spacing(0)
+    .spacing(sidebar_gap)
     .width(Length::Fixed(theme.sizing.right_sidebar_width as f32));
 
     let main = row![
         container(toolbox::view(theme, tools)).padding([theme.spacing.sm, 0.0]),
         workspace,
-        container(right_sidebar).padding([theme.spacing.sm, 0.0]),
+        container(right_sidebar),
     ]
     .height(Length::Fill)
     .spacing(0);
@@ -188,6 +192,13 @@ pub fn view(state: &AppState) -> Element<'_, AppMessage> {
         state.selection_text.clone(),
         format!("{}%", state.zoom_percent),
     );
+
+    let footer = container(column![
+        container(column![]).height(Length::Fixed(theme.sizing.footer_inset_top as f32)),
+        footer,
+    ])
+        .height(Length::Fixed(theme.sizing.footer_height as f32))
+        .width(Length::Fill);
 
     container(column![header, tool_options, main, footer])
         .width(Length::Fill)

@@ -46,14 +46,14 @@ pub fn view<'a, Message: 'a>(
         |row, icon_kind| {
             row.push(
                 container(icon::view(icon_kind, 14.0, 14.0, theme.colors.panel_icon))
-                    .width(Length::Fixed((theme.sizing.dock_header_height - 6) as f32))
-                    .height(Length::Fixed((theme.sizing.dock_header_height - 6) as f32))
+                    .width(Length::Fixed((theme.sizing.dock_toolbar_height - 8) as f32))
+                    .height(Length::Fixed((theme.sizing.dock_toolbar_height - 8) as f32))
                     .style(move |_| {
                         container::Style::default()
-                            .background(Background::Color(theme.colors.panel_header_bg))
+                            .background(Background::Color(theme.colors.panel_bg))
                             .border(
                                 Border::default()
-                                    .rounded(theme.radii.sm)
+                                    .rounded(0.0)
                                     .width(1)
                                     .color(theme.colors.border_subtle),
                             )
@@ -75,7 +75,6 @@ pub fn view<'a, Message: 'a>(
             .height(Length::Fixed(theme.sizing.dock_toolbar_height as f32))
     ])
     .width(Length::Fill)
-    .padding([0.0, theme.spacing.xs])
     .style(move |_| {
         container::Style::default()
             .background(Background::Color(theme.colors.panel_bg))

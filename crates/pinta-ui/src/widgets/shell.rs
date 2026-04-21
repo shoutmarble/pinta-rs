@@ -127,31 +127,35 @@ pub fn layer_row<'a, Message: 'a>(
 ) -> Element<'a, Message> {
     container(
         row![
-            icon::view(IconKind::ViewReveal, 18.0, 18.0, theme.colors.text_muted),
-            text(label)
-                .size(theme.typography.body)
-                .font(theme.typography.ui_regular())
-                .color(theme.colors.text_primary),
+            icon::view(IconKind::ViewReveal, 18.0, 18.0, theme.colors.text_primary),
+            container(
+                text(label)
+                    .size(theme.typography.body)
+                    .font(theme.typography.ui_regular())
+                    .color(theme.colors.text_primary),
+            )
+            .width(Length::Fill)
+            .center_y(Length::Fill),
             container(icon::view(
                 IconKind::ThumbnailSample,
-                52.0,
+                60.0,
                 30.0,
                 theme.colors.text_primary,
             ))
-            .width(Length::Fixed(52.0))
+            .width(Length::Fixed(60.0))
             .height(Length::Fixed(30.0))
             .style(move |_| {
                 container::Style::default()
                     .background(Background::Color(theme.colors.canvas_page_bg))
-                    .border(Border::default().width(1).color(theme.colors.border_strong))
+                    .border(Border::default().width(1).color(theme.colors.border_subtle))
             }),
         ]
-        .spacing(theme.spacing.md)
+        .spacing(theme.spacing.sm)
         .align_y(Alignment::Center),
     )
     .height(Length::Fixed(theme.sizing.layer_row_height as f32))
     .width(Length::Fill)
-    .padding([0.0, theme.spacing.sm])
+    .padding([0.0, theme.spacing.xs])
     .style(move |_| {
         container::Style::default()
             .background(Background::Color(if selected {
@@ -171,7 +175,7 @@ pub fn history_row<'a, Message: 'a>(
 ) -> Element<'a, Message> {
     container(
         row![
-            icon::view(icon_kind, 14.0, 14.0, theme.colors.text_muted),
+            icon::view(icon_kind, 14.0, 14.0, theme.colors.text_primary),
             text(label)
                 .size(theme.typography.caption)
                 .font(theme.typography.ui_regular())
@@ -182,9 +186,11 @@ pub fn history_row<'a, Message: 'a>(
     )
     .height(Length::Fixed(theme.sizing.history_row_height as f32))
     .width(Length::Fill)
-    .padding([0.0, theme.spacing.sm])
+    .padding([0.0, theme.spacing.xs])
     .style(move |_| {
-        container::Style::default().background(Background::Color(theme.colors.panel_bg))
+        container::Style::default()
+            .background(Background::Color(theme.colors.selected_bg))
+            .border(Border::default().width(1).color(theme.colors.border_subtle))
     })
     .into()
 }

@@ -59,10 +59,12 @@ pub fn save_artifacts(
     width: u32,
     height: u32,
 ) {
-    let Some(image) = RgbaImage::from_raw(width, height, screenshot_rgba.to_vec()) else {
+    let Some(raw_image) = RgbaImage::from_raw(width, height, screenshot_rgba.to_vec()) else {
         eprintln!("capture failed: screenshot bytes did not match image dimensions");
         return;
     };
+
+    let image = normalize_capture_image(raw_image);
 
     if let Some(output_path) = &request.output_path {
         if let Err(error) = write_image_with_ready(&image, Path::new(output_path)) {
@@ -80,6 +82,25 @@ pub fn save_artifacts(
             eprintln!("mock diagnostics export failed: {error}");
         }
     }
+}
+
+fn normalize_capture_image(image: RgbaImage) -> RgbaImage {
+    let scale_x = image.width() as f32 / DEFAULT_WINDOW_WIDTH;
+    let scale_y = image.height() as f32 / DEFAULT_WINDOW_HEIGHT;
+    let rounded_scale = ((scale_x + scale_y) * 0.5).round();
+
+    if rounded_scale <= 1.0 {
+        return image;
+    }
+
+    if (scale_x - rounded_scale).abs() > 0.1 || (scale_y - rounded_scale).abs() > 0.1 {
+        return image;
+    }
+
+    let target_width = (image.width() as f32 / rounded_scale).round().max(1.0) as u32;
+    let target_height = (image.height() as f32 / rounded_scale).round().max(1.0) as u32;
+
+    imageops::resize(&image, target_width, target_height, imageops::FilterType::Lanczos3)
 }
 
 fn write_image_with_ready(image: &RgbaImage, output_path: &Path) -> Result<(), String> {
@@ -458,12 +479,17 @@ fn runtime_layout(state: &AppState, window_width: u32, window_height: u32) -> Ru
     let top_bar_height = py(f32::from(sizing.top_bar_height));
     let tool_options_height = py(f32::from(sizing.tool_options_height));
     let footer_height = py(f32::from(sizing.footer_height));
+    let footer_inset_top = py(f32::from(sizing.footer_inset_top));
     let main_y = top_bar_height + tool_options_height;
     let main_height = window_height.saturating_sub(main_y + footer_height);
 
     let left_toolbar_width = px(f32::from(sizing.left_toolbar_width));
     let right_sidebar_width = px(f32::from(sizing.right_sidebar_width));
     let right_sidebar_x = window_width.saturating_sub(right_sidebar_width);
+    let right_sidebar_top_inset = py(f32::from(sizing.right_sidebar_top_inset));
+    let right_sidebar_gap = py(f32::from(sizing.right_sidebar_gap));
+    let layers_pad_height = py(f32::from(sizing.layers_pad_height));
+    let history_pad_height = py(f32::from(sizing.history_pad_height));
     let canvas_width = right_sidebar_x.saturating_sub(left_toolbar_width);
     let surface_width = (state.viewport.viewport_size.0 as f32 * state.viewport.zoom).round() as u32;
     let surface_height = (state.viewport.viewport_size.1 as f32 * state.viewport.zoom).round() as u32;
@@ -483,7 +509,8 @@ fn runtime_layout(state: &AppState, window_width: u32, window_height: u32) -> Ru
         row_inset_x
     };
 
-    let right_half_height = main_height / 2;
+    let layers_y = main_y + right_sidebar_top_inset;
+    let history_y = layers_y + layers_pad_height + right_sidebar_gap;
 
     let mut rects = vec![
         NamedRect {
@@ -526,27 +553,27 @@ fn runtime_layout(state: &AppState, window_width: u32, window_height: u32) -> Ru
             name: "layers-list",
             rect: Rect {
                 x: right_sidebar_x,
-                y: main_y,
+                y: layers_y,
                 width: right_sidebar_width,
-                height: right_half_height,
+                height: layers_pad_height,
             },
         },
         NamedRect {
             name: "history-list",
             rect: Rect {
                 x: right_sidebar_x,
-                y: main_y + right_half_height,
+                y: history_y,
                 width: right_sidebar_width,
-                height: main_height.saturating_sub(right_half_height),
+                height: history_pad_height,
             },
         },
         NamedRect {
             name: "statusbar",
             rect: Rect {
                 x: 0,
-                y: window_height.saturating_sub(footer_height),
+                y: window_height.saturating_sub(footer_height) + footer_inset_top,
                 width: window_width,
-                height: footer_height,
+                height: footer_height.saturating_sub(footer_inset_top),
             },
         },
     ];
